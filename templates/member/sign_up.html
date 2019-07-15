@@ -1,0 +1,165 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+//---------------------------------------
+//  Check duplication of ID
+//---------------------------------------
+function checkId() {
+
+	const strId = $("#txtId").val();
+
+	if(strId) {
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'pjo:chk_id' %}",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+					userId: strId
+			},
+			dataType: 'json',
+			success: function(result) {
+
+				if(result == 0) {
+					$("#chkId").val("Y");
+					return true;
+				} else {
+					alert("ID duplicate error");
+					$("#chkId").val("N");
+					$("#txtId").val("");
+					$("#txtId").focus();
+					return false;
+				}
+			}
+			, error: function(errorThrown) {
+				alert("[error:" + errorThrown.status + "] " + errorThrown.responseText);
+				return false;
+			}
+		});
+	} else {
+		return false;
+	}
+}
+
+
+//---------------------------------------
+//  Validation Check before Saving
+//---------------------------------------
+function validationCheck() {
+
+	// item check
+	const strId = $("#txtId").val();
+	if(strId == "") {
+		alert("Fill the ID");
+		$("#txtId").focus();
+		return false;
+	}
+
+	const strFirstName = $("#txtFirstName").val();
+	if(strFirstName == "") {
+		alert("Fill the First Name");
+		$("#txtFirstName").focus();
+		return false;
+	}
+
+	const strLastName = $("#txtLastName").val();
+	if(strLastName == "") {
+		alert("Fill the Last Name");
+		$("#txtLastName").focus();
+		return false;
+	}
+
+	const strPassword = $("#txtPassword").val();
+	if(strPassword == "") {
+		alert("Fill the Password");
+		$("#txtPassword").focus();
+		return false;
+	}
+
+	const strRePassword = $("#txtRePassword").val();
+
+	if(strPassword != strRePassword) {
+		alert("Check your password.");
+		$("#txtRePassword").focus();
+		return false;
+	}
+
+	// duplication check
+	const strChkId = $("#chkId").val();
+	if(strChkId == "N") {
+		alert("Duplication of ID")
+		$("#txtId").focus();
+		return false;
+	}
+
+	return true;
+}
+
+
+//---------------------------------------
+//  Join
+//---------------------------------------
+function join() {
+	if(validationCheck()) {
+		document.mainForm.action = "{% url 'pjo:sign_up' %}";
+		document.mainForm.submit();
+	}
+}
+
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+	<!-- hidden -->
+	<input type="hidden" id="chkId" name="chkId" value="N">
+
+    <!-- Title -->
+    <dl>
+        <dt><label for="txtId">ID</label></dt>
+        <dd>
+            <input class="vTextField" id="txtId" maxlength="20" name="txtId" type="text" onblur="javascript:checkId()"/>
+        </dd>
+        <dt><label for="txtId">First name</label></dt>
+        <dd>
+            <input class="vTextField" id="txtFirstName" maxlength="50" name="txtFirstName" type="text"/>
+        </dd>
+        <dt><label for="txtId">Last name</label></dt>
+        <dd>
+            <input class="vTextField" id="txtLastName" maxlength="50" name="txtLastName" type="text"/>
+        </dd>
+        <dt><label for="txtId">Password</label></dt>
+        <dd>
+            <input class="vTextField" id="txtPassword" maxlength="20" name="txtPassword" type="password" onfocus="javascript:f_clear(this)"/>
+        </dd>
+        <dt><label for="txtId">Check Password</label></dt>
+        <dd>
+            <input class="vTextField" id="txtRePassword" maxlength="20" name="txtRePassword" type="password" onfocus="javascript:f_clear(this)"/>
+        </dd>
+    </dl>
+
+	<div class="submit-row">
+		<input id="btnJoin" type="button" value="JOIN" onclick="join()"/>
+        <label for="btnJoin">JOIN</label>
+	</div>
+
+</form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+
+
+
+
+
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+
+
+</form>
+
+</div>
+
+{% endblock %}
