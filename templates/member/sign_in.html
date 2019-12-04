@@ -1,0 +1,153 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+//---------------------------------------
+//  OnLoad
+//---------------------------------------
+$(function() {
+    $("#span_alert_id").text("");
+    $("#span_alert_pw").text("");
+    $("#div_alert_id").hide();
+    $("#div_alert_pw").hide();
+
+    $("#txtId").focus();
+});
+
+
+//---------------------------------------
+//  Enter key event
+//---------------------------------------
+$(document).keypress(function(event){
+    const keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        sign_in();
+    }
+});
+
+//---------------------------------------
+//  Sigin In
+//---------------------------------------
+function sign_in() {
+
+	if(validationCheck()) {
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'pjo:sign_in' %}",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+                txtId : $("#txtId").val(),
+                txtPassword : $("#txtPassword").val(),
+			},
+			dataType: 'json',
+            success: function(data) {
+                if(data.ret_code == "Y") {
+                    window.location.href="{% url 'pjo:index' %}"
+                } else {
+                    if(data.ret_code == "A") {
+                        $("#span_alert_id").text(data.ret_msg);
+                        $("#div_alert_id").show();
+                        $("#txtId").val("");
+                        $("#txtPassword").val("");
+                    } else if(data.ret_code == "B") {
+                        $("#txtPassword").val("");
+                        $("#span_alert_pw").text(data.ret_msg);
+                        $("#div_alert_pw").show();
+                    }
+                }
+            },
+            error: function(request, status, error) {
+                $("#span_json_msg").text(error);
+                $("#div_json_msg").addClass("error");
+                $("#div_json_msg").show();
+            }
+        });
+	}
+}
+
+
+
+//---------------------------------------
+//  Validation Check before Saving
+//---------------------------------------
+function validationCheck() {
+
+    let bool_return = true;
+
+	// item check
+	const strId = $("#txtId").val();
+
+	if(strId == "") {
+        alert("#1");
+        $("#span_alert_id").text("Fill the ID");
+        $("#div_alert_id").show();
+        alert("#2");
+		$("#txtId").focus();
+		bool_return = false;
+	} else {
+        $("#span_alert_id").text("");
+        $("#div_alert_id").hide();
+    }
+
+	const strPassword = $("#txtPassword").val();
+	if(strPassword == "") {
+        $("#span_alert_pw").text("Fill the Password");
+        $("#div_alert_pw").show();
+		$("#txtPassword").focus();
+		bool_return = false;
+	} else {
+        $("#span_alert_pw").text("");
+        $("#div_alert_pw").hide();
+    }
+
+	return bool_return;
+}
+
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+    <dl>
+        <dt><label for="txtId">ID</label></dt>
+        <dd>
+            <input type="text" id="txtId" class="vTextField" maxlength="20"/>
+            <div id="div_alert_id" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_id"></span>
+            </div>
+        </dd>
+        <dt><label for="txtId">Password</label></dt>
+        <dd>
+            <input type="password" id="txtPassword" class="vTextField" maxlength="20"/>
+            <div id="div_alert_pw" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_pw"></span>
+            </div>
+        </dd>
+    </dl>
+
+	<div class="submit-row">
+        <input type="button" value="Sign In" class="btn_simple" id="btnSign" onclick="sign_in()"/>
+	</div>
+
+</form>
+
+</div>
+
+{% endblock %}

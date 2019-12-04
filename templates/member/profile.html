@@ -10,62 +10,22 @@
 
 <script type="text/javascript">
 
+
 //---------------------------------------
 //  OnLoad
 //---------------------------------------
 $(function() {
-    $("#span_alert_id").text("");
     $("#span_alert_fnm").text("");
     $("#span_alert_lnm").text("");
     $("#span_alert_pw").text("");
     $("#span_alert_rpw").text("");
-    $("#div_alert_id").hide();
+    $("#span_alert_auth").text("");
     $("#div_alert_fnm").hide();
     $("#div_alert_lnm").hide();
     $("#div_alert_pw").hide();
     $("#div_alert_rpw").hide();
+    $("#div_alert_auth").hide();
 });
-
-//---------------------------------------
-//  Check duplication of ID
-//---------------------------------------
-function checkId() {
-
-	const strId = $("#txtId").val();
-
-	if(strId) {
-		$.ajax({
-			type: 'POST',
-			url: "{% url 'pjo:chk_id' %}",
-			data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
-                userId: strId
-			},
-			dataType: 'json',
-			success: function(result) {
-
-				if(result == 0) {
-					$("#chkId").val("Y");
-					$("#span_alert_id").text("");
-					$("#div_alert_id").hide();
-					return true;
-				} else {
-					$("#span_alert_id").text("ID duplicate error");
-					$("#div_alert_id").show();
-					$("#chkId").val("N");
-					$("#txtId").focus();
-					return false;
-				}
-			},
-            error: function(request, status, error) {
-                $("#span_json_msg").text(error);
-                $("#div_json_msg").addClass("error");
-                $("#div_json_msg").show();
-            }
-		});
-	} else {
-		return false;
-	}
-}
 
 
 //---------------------------------------
@@ -74,18 +34,6 @@ function checkId() {
 function validationCheck() {
 
     let bool_return = true;
-
-	// item check
-	const strId = $("#txtId").val();
-	if(strId == "") {
-        $("#span_alert_id").text("Fill the ID");
-        $("#div_alert_id").show();
-		$("#txtId").focus();
-		bool_return = false;
-	} else {
-        $("#span_alert_id").text("");
-        $("#div_alert_id").hide();
-    }
 
 	const strFirstName = $("#txtFirstName").val();
 	if(strFirstName == "") {
@@ -132,36 +80,36 @@ function validationCheck() {
         $("#div_alert_rpw").hide();
     }
 
-	// duplication check
-	const strChkId = $("#chkId").val();
-	if(strChkId == "N") {
-        $("#span_alert_id").text("Duplication of ID");
-        $("#div_alert_id").show();
-		$("#txtId").focus();
+    const strAuthority = $("#selAuthority").val();
+	if(strAuthority == "") {
+        $("#span_alert_auth").text("Choose the authority");
+        $("#div_alert_auth").show();
+		$("#selAuthority").focus();
 		bool_return = false;
 	} else {
-        $("#span_alert_id").text("");
-        $("#div_alert_id").hide();
+        $("#span_alert_auth").text("");
+        $("#div_alert_auth").hide();
     }
 
-	return bool_return;
+    return bool_return;
 }
 
 
 //---------------------------------------
-//  Join
+//  Modify
 //---------------------------------------
-function join() {
+function modify() {
 	if(validationCheck()) {
 
-		$.ajax({
+        $.ajax({
 			type: 'POST',
-			url: "{% url 'pjo:sign_up' %}",
+			url: "{% url 'pjo:prf_mod' %}",
 			data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
                 txtId : $("#txtId").val(),
                 txtFirstName : $("#txtFirstName").val(),
                 txtLastName : $("#txtLastName").val(),
                 txtPassword : $("#txtPassword").val(),
+                selAuthority : $("#selAuthority").val(),
 			},
 			dataType: 'json',
             success: function(data) {
@@ -169,9 +117,6 @@ function join() {
                 $("#div_json_msg").addClass(data.ret_level);
                 $("#div_json_msg").show();
                 $("#div_json_msg").delay(1000).fadeOut('slow');
-                if(data.ret_code == "Y") {
-                    {#window.location.href="{% url 'pjo:index' %}"#}
-                }
             },
             error: function(request, status, error) {
                 $("#span_json_msg").text(error);
@@ -181,7 +126,6 @@ function join() {
         });
 	}
 }
-
 
 </script>
 
@@ -195,22 +139,14 @@ function join() {
 
 <form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
 
-	<!-- hidden -->
-	<input type="hidden" id="chkId" name="chkId" value="N">
-
     <dl>
         <dt><label for="txtId">ID</label></dt>
         <dd>
-            <input class="vTextField" id="txtId" maxlength="20" name="txtId" type="text" onblur="javascript:checkId()"/>
-            <div id="div_alert_id" class="msg_div success small">
-              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
-              <span id="span_alert_id"></span>
-            </div>
+            <input type="text" id="txtId" value="{{ id }}" maxlength="20" class="vTextField" readonly/>
         </dd>
-
         <dt><label for="txtFirstName">First name</label></dt>
         <dd>
-            <input class="vTextField" id="txtFirstName" maxlength="50" name="txtFirstName" type="text"/>
+            <input type="text" id="txtFirstName" value="{{ firstName }}" maxlength="50" class="vTextField"/>
             <div id="div_alert_fnm" class="msg_div success small">
               <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
               <span id="span_alert_fnm"></span>
@@ -218,7 +154,7 @@ function join() {
         </dd>
         <dt><label for="txtLastName">Last name</label></dt>
         <dd>
-            <input class="vTextField" id="txtLastName" maxlength="50" name="txtLastName" type="text"/>
+            <input type="text" id="txtLastName" value="{{ lastName }}" maxlength="50" class="vTextField"/>
             <div id="div_alert_lnm" class="msg_div success small">
               <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
               <span id="span_alert_lnm"></span>
@@ -226,7 +162,7 @@ function join() {
         </dd>
         <dt><label for="txtPassword">Password</label></dt>
         <dd>
-            <input class="vTextField" id="txtPassword" maxlength="20" name="txtPassword" type="password" onfocus="javascript:f_clear(this)"/>
+            <input type="password" id="txtPassword" value="{{ password }}" maxlength="20" class="vTextField"/>
             <div id="div_alert_pw" class="msg_div success small">
               <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
               <span id="span_alert_pw"></span>
@@ -234,16 +170,29 @@ function join() {
         </dd>
         <dt><label for="txtRePassword">Check Password</label></dt>
         <dd>
-            <input class="vTextField" id="txtRePassword" maxlength="20" name="txtRePassword" type="password" onfocus="javascript:f_clear(this)"/>
+            <input type="password" id="txtRePassword" value="{{ password }}" maxlength="20" class="vTextField"/>
             <div id="div_alert_rpw" class="msg_div success small">
               <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
               <span id="span_alert_rpw"></span>
             </div>
         </dd>
+        <dt><label for="selAuthority">Authority</label></dt>
+        <dd>
+            <select id="selAuthority" name="selAuthority" {% if authority != "99" %}disabled{% endif %}>
+                <option value="">--Choose--</option>
+            {%	for auth in code001 %}
+                <option value="{{ auth.code_id }}" {% if authority == auth.code_id %}selected{% endif %}>{{ auth.code_nm }}</option>
+            {%	endfor %}
+            </select>
+            <div id="div_alert_auth" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_auth"></span>
+            </div>
+        </dd>
     </dl>
 
 	<div class="submit-row">
-        <input type="button" value="Join" class="btn_simple" id="btnJoin" onclick="join()"/>
+        <input type="button" value="Modify" class="btn_simple" id="btnModify" onclick="modify()"/>
 	</div>
 
 </form>

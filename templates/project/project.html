@@ -1,0 +1,361 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+
+//---------------------------------------
+//  OnLoad
+//---------------------------------------
+$(function() {
+    $("#span_alert_pinm").text("");
+    $("#span_alert_pii").text("");
+    $("#span_alert_anit").text("");
+    $("#span_alert_clsf").text("");
+    $("#span_alert_year").text("");
+    $("#div_alert_pinm").hide();
+    $("#div_alert_pii").hide();
+    $("#div_alert_anit").hide();
+    $("#div_alert_clsf").hide();
+    $("#div_alert_year").hide();
+
+    let project_id = $("#txtProjectId").val();
+    if (project_id == "") {
+        $("#txtProjectId").prop("disabled", true);
+        $("#span_project_id").hide();
+        $("#btnRegister").prop("disabled", false);
+        $("#btnRegister").show();
+        $("#btnModify").prop("disabled", true);
+        $("#btnModify").hide();
+    } else {
+        $("#txtProjectId").prop("disabled", true);
+        $("#span_project_id").show();
+        $("#btnRegister").prop("disabled", true);
+        $("#btnRegister").hide();
+        $("#btnModify").prop("disabled", false);
+        $("#btnModify").show();
+
+        set_strain_selectbox();
+
+        $("#txtPIInit").prop("disabled", true);
+        $("#selAnimalType").prop("disabled", true);
+        $("#txtClassification").prop("disabled", true);
+    }
+});
+
+
+//---------------------------------------
+//  Fill Initial : Char(2)
+//---------------------------------------
+function fillInitial() {
+
+	let first = $("#txtFirstName").val();
+	let last  = $("#txtLastName").val();
+
+	let boolInit = $("#txtPIInit").prop("disabled");
+	if (!boolInit) {
+        if(first != "" && last != "") {
+
+            let charFirst = first.substr(0, 1);
+            let charLast = last.substr(0, 1);
+
+            let init = charFirst + charLast;
+            init = init.toUpperCase();
+
+            $("#txtPIInit").val(init);
+        }
+	}
+}
+
+
+//---------------------------------------
+//  Fill Initial : Char(2)
+//---------------------------------------
+function toUpperCase(id) {
+
+    let value = $("#" + id).val();
+    value = value.toUpperCase();
+    $("#" + id).val(value);
+}
+
+
+//---------------------------------------
+//  Set strain select box
+//---------------------------------------
+function set_strain_selectbox() {
+
+    const animal_type = $("#selAnimalType").val();
+    let strain_code = "";
+    let select_html = "";
+
+    if (animal_type == "") {
+        // do nothing
+        return "";
+    } else {
+        strain_code = "003";
+    }
+
+    if (strain_code != "") {
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'pjo:inq_cd' %}",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+                txtCodeId: strain_code
+			},
+			dataType: 'json',
+			success: function(result) {
+			    const len_code = result.length;
+			    select_html = "<select id='selAnimalStrain' name='selAnimalStrain'><option value=''>--Choose--</option>";
+                for (let i=0; i<len_code; i++) {
+                    let code_id = result[i]['fields']['code_id'];
+                    let code_nm = result[i]['fields']['code_nm'];
+                    let sub_animal = code_id.substr(0, 1)
+                    if (sub_animal == animal_type) {
+                        select_html = select_html + "<option value='" + code_id + "'>" + code_nm + "</option>";
+                    }
+                }
+                select_html = select_html + "</select>";
+
+                $("#span_strain").html(select_html);
+
+                let strain = $("#hidStrain").val();
+                if(strain != "") {
+                    $("#selAnimalStrain").val(animal_type + strain);
+                    $("#selAnimalStrain").prop("disabled", true);
+                }
+
+            },
+            error: function(request, status, error) {
+                alert(request.responseText + " status=[" + status + "] error=[" + error + "]");
+            }
+        });
+    } else {
+        select_html = "<select id='selAnimalStrain' name='selAnimalStrain' disabled><option value='O'>Other</option></select>";
+        $("#span_strain").html(select_html);
+    }
+}
+
+
+//---------------------------------------
+//  Validation Check before Saving
+//---------------------------------------
+function validationCheck() {
+
+    let bool_return = true;
+
+    let first = $("#txtFirstName").val();
+	let last  = $("#txtLastName").val();
+
+	const strPIName = first + last;
+	if(strPIName == "") {
+        $("#span_alert_pinm").text("Fill the PI's Name");
+        $("#div_alert_pinm").show();
+		$("#txtFirstName").focus();
+		bool_return = false;
+	} else {
+        $("#span_alert_pinm").text("");
+        $("#div_alert_pinm").hide();
+    }
+
+	const strPIInit = $("#txtPIInit").val();
+	if(strPIInit == "") {
+        $("#span_alert_pii").text("Fill the PI's Initial");
+        $("#div_alert_pii").show();
+		$("#txtPIInit").focus();
+		bool_return = false;
+	} else {
+        $("#span_alert_pii").text("");
+        $("#div_alert_pii").hide();
+    }
+
+    const strAnimalType = $("#selAnimalType").val();
+    const strAnimalStrain = $("#selAnimalStrain").val();
+	if(strAnimalType == "" || strAnimalStrain == "") {
+        $("#span_alert_anit").text("Choose animal species.");
+        $("#div_alert_anit").show();
+
+        if(strAnimalType == "") {
+    		$("#selAnimalType").focus();
+        } else {
+            $("#selAnimalStrain").focus();
+        }
+		bool_return = false;
+	} else {
+        $("#span_alert_anit").text("");
+        $("#div_alert_anit").hide();
+    }
+
+	const strClassification = $("#txtClassification").val();
+	if(strClassification == "") {
+        $("#span_alert_clsf").text("Fill the Classification");
+        $("#div_alert_clsf").show();
+		$("#txtClassification").focus();
+		bool_return = false;
+	} else {
+        $("#span_alert_clsf").text("");
+        $("#div_alert_clsf").hide();
+    }
+
+    const strYear = $("#selYear").val();
+	if(strYear == "") {
+        $("#span_alert_year").text("Choose animal strain.");
+        $("#div_alert_year").show();
+		$("#selYear").focus();
+		bool_return = false;
+	} else {
+        $("#span_alert_year").text("");
+        $("#div_alert_year").hide();
+    }
+
+    return bool_return;
+}
+
+
+//---------------------------------------
+//  Register
+//---------------------------------------
+function register() {
+
+	if(validationCheck()) {
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'pjo:prj_reg' %}",
+			data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+			    txtProjectId : $("#txtProjectId").val(),
+                txtPIInit : $("#txtPIInit").val(),
+                txtFirstName : $("#txtFirstName").val(),
+                txtLastName : $("#txtLastName").val(),
+                selAnimalType : $("#selAnimalType").val(),
+                selAnimalStrain : $("#selAnimalStrain").val(),
+                txtClassification : $("#txtClassification").val(),
+                selYear : $("#selYear").val(),
+                txtProjectAim : $("#txtProjectAim").val(),
+			},
+			dataType: 'json',
+            success: function(data) {
+			    $("#txtProjectId").val(data.projectId);
+			    $("#span_project_id").show();
+			    $("#btnRegister").prop("disabled", true);
+			    $("#btnRegister").hide();
+			    $("#btnModify").prop("disabled", false);
+			    $("#btnModify").show();
+
+                $("#span_json_msg").text(data.ret_msg);
+                $("#div_json_msg").addClass(data.ret_level);
+                $("#div_json_msg").show();
+                $("#div_json_msg").delay(1000).fadeOut('slow');
+                if(data.ret_code == "I") {
+                    {#window.location.href="{% url 'pjo:index' %}"#}
+                }
+            },
+            error: function(request, status, error) {
+                $("#span_json_msg").text(error);
+                $("#div_json_msg").addClass("error");
+                $("#div_json_msg").show();
+            }
+        });
+     }
+}
+
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+    <dl>
+        <span id="span_project_id">
+        <dt><label for="txtProjectId">ID</label></dt>
+        <dd>
+            <input type="text" id="txtProjectId" name="txtProjectId" value="{{ project_id }}" maxlength="4" class="vTextField"/>
+        </dd>
+        </span>
+
+        <dt><label for="txtFirstName">PI's name</label></dt>
+        <dd>
+            <input type="text" id="txtFirstName" name="txtFirstName" value="{{ firstName }}" maxlength="30" class="vTextField" onblur="javascript:fillInitial()"/>
+            <input type="text" id="txtLastName" name="txtLastName" value="{{ lastName }}" maxlength="30" class="vTextField" onblur="javascript:fillInitial()"/>
+            <div id="div_alert_pinm" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_pinm"></span>
+            </div>
+        </dd>
+
+        <dt><label for="txtPIInit">PI's Initial</label></dt>
+        <dd>
+            <input type="text" id="txtPIInit" name="txtPIInit" value="{{ piInitial }}" maxlength="2" class="vTextField"/>
+            <div id="div_alert_pii" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_pii"></span>
+            </div>
+        </dd>
+
+        <dt><label for="selAnimalType">Animal Species</label></dt>
+        <dd>
+            <select id="selAnimalType" name="selAnimalType" onchange="set_strain_selectbox();">
+                <option value="">--Choose--</option>
+            {%	for ani_type in code002 %}
+                <option value="{{ ani_type.code_id }}" {% if animalType == ani_type.code_id %}selected{% endif %}>{{ ani_type.code_nm }}</option>
+            {%	endfor %}
+            </select>
+            <input type="hidden" id="hidStrain" name="hidStrain" value="{{ strainType }}">
+            <span id="span_strain"></span>
+            <div id="div_alert_anit" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_anit"></span>
+            </div>
+        </dd>
+
+        <dt><label for="txtClassification">Classification</label></dt>
+        <dd>
+            <input type="text" id="txtClassification" name="txtClassification" value="{{ classification }}" maxlength="5" class="vTextField"  onblur="javascript:toUpperCase('txtClassification')"/>
+            <div id="div_alert_clsf" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_clsf"></span>
+            </div>
+        </dd>
+
+        <dt><label for="selYear">Year</label></dt>
+        <dd>
+            <select id="selYear" name="selYear">
+                <option value="">--Choose--</option>
+            {%	for year_code in code004 %}
+                <option value="{{ year_code.code_id }}" {% if year == year_code.code_id %}selected{% endif %}>{{ year_code.code_nm }}</option>
+            {%	endfor %}
+            </select>
+            <div id="div_alert_year" class="msg_div success small">
+              <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+              <span id="span_alert_year"></span>
+            </div>
+        </dd>
+
+        <dt><label for="txtProjectAim">Project Aim</label></dt>
+        <dd>
+            <input type="text" id="txtProjectAim" name="txtProjectAim" value="{{ projectAim }}" maxlength="50" class="vTextField"/>
+        </dd>
+
+    </dl>
+
+	<div class="submit-row">
+        <input type="button" value="Modify" class="btn_simple" id="btnModify" onclick="register()"/>
+        <input type="button" value="Register" class="btn_simple" id="btnRegister" onclick="register()"/>
+	</div>
+
+</form>
+
+</div>
+
+{% endblock %}

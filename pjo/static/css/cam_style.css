@@ -1,0 +1,269 @@
+
+/* The alert message box */
+.msg_div {
+    padding: 20px;
+    margin-bottom: 15px;
+}
+.msg_div.top {
+    padding: 10px 20px;
+    margin: 0px;
+}
+.msg_div.small {
+    padding: 10px 20px;
+    margin: 10px 10px;
+}
+.msg_div.debug {
+    background-color: #D6EAF8;
+    color: #2874A6;
+}
+.msg_div.info {
+    background-color: #D4EFDF;
+    color: #1E8449;
+}
+.msg_div.success {
+    background-color: #F9E79F;
+    color: #9A7D0A;
+}
+.msg_div.warning {
+    background-color: #F5B7B1;
+    color: #A93226;
+}
+.msg_div.error {
+    background-color: #C0392B;
+    color: white;
+}
+
+/* The close button */
+.msg_close_btn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* When moving the mouse over the close button */
+.msg_close_btn:hover {
+  color: black;
+}
+
+
+/*******************************************************************
+    DIV - Search
+ *******************************************************************/
+#div_search {
+    background: #EBEDEF;
+    padding: 10px 20px;
+}
+
+#div_search ul.items {
+    display: block;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+#div_search ul.items li {
+    padding: 3px 1px;
+    font-weight: bold;
+    list-style-type: none;
+    display: inline-block;
+}
+
+#div_search ul.items li label {
+	display: block;
+	padding: 4px 2px 0 0;
+    float: left;
+    width: 120px;
+}
+
+@media screen and (min-width:1000px){
+	#div_search ul.col2 li {
+		width: 40em;
+	}
+
+	#div_search ul.col3 li {
+		width: 23em;
+	}
+}
+@media screen and (max-width:999px){
+	#div_search ul.col2 li {
+		width: 100%;
+	}
+
+	#div_search ul.col3 li {
+		width: 100%;
+	}
+}
+
+.results {
+    width: auto;
+	overflow-x: auto;
+}
+
+.btn_simple {
+    opacity: 1 !important;
+    border: 1px solid #CCC;
+    border-radius: 3px;
+    background: #333;
+    color: #fff;
+    padding: 10px;
+    margin: 0;
+    cursor: pointer;
+    width: 100px;
+    text-align: center;
+}
+
+.btn_simple:hover {
+    background: #4D5656;
+}
+
+.btn_simple[disabled] {
+    background: #7B7D7D;
+    color: #CACFD2;
+}
+
+.btn_simple[disabled]:hover {
+    cursor: not-allowed;
+}
+
+
+/*******************************************************************
+    DIV Table - Result
+ *******************************************************************/
+.div_tb_result {
+	display: table;
+	width: 100%;
+	table-layout: fixed;
+	border-collapse: collapse;
+	text-align: center;
+	border-color: #ccc;
+}
+.div_tb_result .thead {
+	display: table-header-group;
+    padding: 8px;
+    text-transform: uppercase;
+}
+.div_tb_result .tbody {
+	display: table-row-group;
+}
+.div_tb_result .tr {
+	display: table-row;
+	width: 100%;
+}
+.div_tb_result .tr:nth-child(even){
+	background-color: #FBFBFB;
+}
+.div_tb_result .tr:hover {
+	background-color: #E0E0E0;
+}
+.div_tb_result .th {
+	display: table-cell;
+    padding: 5px 10px;
+    border: none;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    color: #666;
+    background: #f6f6f6;
+    vertical-align: middle;
+    font-weight: 800;
+    font-size: 11px;
+}
+.div_tb_result .td {
+	display: table-cell;
+	padding: 10px;
+	border-bottom: 1px solid #ececec;
+    line-height: 14px;
+    vertical-align: middle;
+	font-size: 13px;
+    font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+}
+
+
+/*******************************************************************
+    Tooltip
+ *******************************************************************/
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    top: 150%;
+    left: 50%;
+    margin-left: -60px;
+}
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+.tooltipIcon {
+	color: #999999;
+}
+
+
+/*******************************************************************
+    PAGINATOR
+ *******************************************************************/
+.paginator {
+    font-size: 13px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    line-height: 22px;
+    margin: 0;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+
+.paginator a:link, .paginator a:visited {
+    padding: 2px 6px;
+    text-decoration: none;
+}
+
+.paginator a.showall {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #5b80b2;
+}
+
+.paginator a.showall:focus, .paginator a.showall:hover {
+    background: none;
+    color: #036;
+}
+
+.paginator .end {
+    margin-right: 6px;
+}
+
+.paginator .this-page {
+    padding: 2px 6px;
+    font-weight: bold;
+    font-size: 13px;
+    vertical-align: top;
+}
+
+.paginator a:focus, .paginator a:hover {
+}
+

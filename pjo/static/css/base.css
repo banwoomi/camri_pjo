@@ -13,12 +13,12 @@ body {
 /* LINKS */
 
 a:link, a:visited {
-    color: #F8F9F9;
+    color: #17202A;
     text-decoration: none;
 }
 
 a:focus, a:hover {
-    color: #F8F9F9;
+    color: #21618C;
 }
 
 a:focus {
@@ -300,6 +300,14 @@ select[multiple] {
 }
 
 
+
+input[type=text]:disabled, input[type=text]:read-only,
+input[type=email]:disabled, input[type=email]:read-only,
+input[type=number]:disabled, input[type=number]:read-only{
+    background: #F2F3F4;
+}
+
+
 /* FORM BUTTONS */
 
 [type=button] {
@@ -328,6 +336,15 @@ input,
 }
 [type=button] + label:hover {
     background: #4D5656;
+}
+
+[type=button][disabled] + label {
+    background: #7B7D7D;
+    color: #CACFD2;
+}
+
+[type=button][disabled] + label:hover {
+    cursor: not-allowed;
 }
 
 

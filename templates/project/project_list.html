@@ -1,0 +1,173 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+//---------------------------------------
+//  search
+//---------------------------------------
+function f_searchPagingList(pageNum) {
+	$("#txtPage").val(pageNum);
+	document.mainForm.action = "{% url 'pjo:prj_sch' %}";
+	document.mainForm.submit();
+}
+
+
+//---------------------------------------
+//  Clear All
+//---------------------------------------
+function f_clearItem() {
+	$("#txtPIInit").val("");
+	$("#txtPIName").val("");
+	$("#selAnimalType").val("");
+	$("#selYear").val("");
+	$("#txtProjectAim").val("");
+
+	f_searchPagingList(1);
+}
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+<!-- hidden -->
+<input type="hidden" id="txtPage" name="txtPage">
+
+<div id="div_search">
+    <ul class="items col2">
+        <li>
+            <label for="txtPIInit">PI Initial:</label>
+            <input type="text" id="txtPIInit" name="txtPIInit" maxlength="2" class="vTextField" value="{{ txtPIInit }}"/>
+        </li>
+        <li>
+            <label for="txtPIName">PI Name:</label>
+            <input type="text" id="txtPIName" name="txtPIName" maxlength="50" class="vTextField" value="{{ txtPIName }}"/>
+        </li>
+    </ul>
+
+    <ul class="items col2">
+        <li>
+            <label for="selAnimalType">Animal Species:</label>
+            <select class="selectfilter" id="selAnimalType" name="selAnimalType">
+                <option value="">--Choose--</option>
+            {%	for anitype in code002 %}
+                <option value="{{ anitype.code_id }}" {% if anitype.code_id == selAnimalType %} selected {% endif %}>{{ anitype.code_nm }}</option>
+            {%	endfor %}
+            </select>
+        </li>
+        <li>
+            <label for="txtYear">Year:</label>
+            <select class="selectfilter" id="selYear" name="selYear">
+                <option value="">--Choose--</option>
+            {%	for year in code004 %}
+                <option value="{{ year.code_id }}" {% if year.code_id == selYear %} selected {% endif %}>{{ year.code_nm }}</option>
+            {%	endfor %}
+            </select>
+        </li>
+    </ul>
+
+    <ul class="items col2">
+        <li>
+            <label for="txtProjectAim">Project Aim:</label>
+            <input class="vTextField" id="txtProjectAim" maxlength="50" name="txtProjectAim" type="text" value="{{ txtProjectAim }}"/>
+        </li>
+        <li>
+            <input type="button" value="Search" class="btn_simple" id="btnSearch" onclick="f_searchPagingList(1)"/>
+            <input type="button" value="Clear All" class="btn_simple" id="btnClearAll" onclick="f_clearItem()"/>
+        </li>
+    </ul>
+</div>
+</form>
+
+
+<!-- result -->
+<div class="div_result_title">
+    <h2>Project List</h2>
+</div>
+<div class="div_tb_result">
+    <div class="thead">
+        <div class="tr">
+            <div class="th tbWidth05">ID</div>
+            <div class="th tbFixWidth120">Project Name
+                <div class="tooltip">
+                    <i class="fa fa-question-circle tooltipIcon"></i>
+                    <span class="tooltiptext">Initial/Animal Species/Strain/Classification</span>
+                </div>
+            </div>
+            <div class="th tbWidth10">Researcher<br>Name</div>
+            <div class="th tbWidth10">Animal<br>Species</div>
+            <div class="th tbWidth10">Strain</div>
+            <div class="th tbWidth05">Year</div>
+            <div class="th tbWidth20">Project Aim</div>
+            <div class="th tbWidth10">Register Date</div>
+            <div class="th tbWidth05">#Subject</div>
+            <div class="th tbWidth05">#Session</div>
+            <div class="th tbWidth05">#Derive</div>
+            <div class="th tbFixWidth50">Detail<br>View</div>
+        </div>
+    </div>
+
+    <div class="tbody">
+    {%	for row in resultList %}
+        <div class="tr">
+            <div class="td">{{ row.PROJECT_ID }}</div>
+            <div class="td">
+                <a href="javascript:f_goToSubject('{{ row.PROJECT_ID }}')">
+                {{ row.INITIAL_NM }}{{ row.ANIMAL_TYPE }}{{ row.STRAIN_TYPE }}{{ row.CLASSIFICATION }}
+                </a>
+            </div>
+            <div class="td">{{ row.RESEARCHER_NM }}</div>
+            <div class="td">{{ row.ANIMAL_NM }}</div>
+            <div class="td">{{ row.STRAIN_NM }}</div>
+            <div class="td">{{ row.YEAR }}</div>
+            <div class="td noneOverflow">{{ row.PROJECT_AIM }}</div>
+            <div class="td">{{ row.REG_DATE|date:'Y-m-d' }}</div>
+            <div class="td">{{ row.SUB_CNT }}</div>
+            <div class="td">{{ row.SES_CNT }}</div>
+            <div class="td">{{ row.DERIVE_CNT }}</div>
+            <div class="td">
+                <a href="{% url 'pjo:prj_mod' row.PROJECT_ID %} ">
+                    MODIFY
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+<!-- end of result -->
+
+<!-- paging -->
+{% if resultList.paginator.count > 0 %}
+<div class="paginator">
+    {% if resultList.has_previous %}
+        <a href="javascript:f_searchPagingList({{ resultList.previous_page_number }})">previous</a>
+    {% endif %}
+
+    <span class="current">
+        Page {{ resultList.number }} of {{ resultList.paginator.num_pages }}.
+    </span>
+
+    {% if resultList.has_next %}
+        <a href="javascript:f_searchPagingList( {{ resultList.next_page_number }} )">next</a>
+    {% endif %}
+</div>
+{% endif %}
+<!-- end of paging -->
+
+</div>
+{% endblock %}

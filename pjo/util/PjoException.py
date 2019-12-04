@@ -16,9 +16,7 @@ class PjoException(Exception):
 
         # Exception origin info -> Exception Message Setting
         exc_type, exc_obj, exc_tb = sys.exc_info()
-
-        # Print Exception Log
-        traceback.print_exception(exc_type, exc_obj, exc_tb)
+        self.tb = traceback.format_exception(exc_type, exc_obj, exc_tb)
 
         # Set Exception Values
         f = exc_tb.tb_frame
@@ -50,8 +48,11 @@ class PjoException(Exception):
         self.db_insert()
 
     def logging(self):
-        errLogger.error('[{}]{}\n{}(LINE:{}) {}'.format(self.exception_class, self.exception_msg,
-                                                        self.filename, self.lineno, self.line))
+        errLogger.error('[{}] {}'.format(self.exception_class, self.exception_msg))
+        str_log = ""
+        for line in self.tb:
+            str_log = str_log + line
+        errLogger.error(str_log)
 
     def db_insert(self):
 

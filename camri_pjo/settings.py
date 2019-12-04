@@ -111,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
 
@@ -124,3 +124,92 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+MESSAGE_LEVEL = 10  # DEBUG
+#MESSAGE_LEVEL = 20  # INFO
+
+# LOG
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        'simple': {
+            'format': '[%(levelname)s]%(module)s.%(funcName)s(line:%(lineno)d) %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'verbose': {
+            'format': '[%(asctime)s][%(levelname)s]%(module)s.%(funcName)s(line:%(lineno)d) %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'dbFormat': {
+            'format': '[%(asctime)s]%(module)s.%(funcName)s(line:%(lineno)d) \n %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'errFormat': {
+            'format': '[%(asctime)s][%(levelname)s]%(message)s [th:%(thread)d,prc:%(process)d] \n ',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'devLogFile': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/Users/woomi_mac/woomi_projects/camri_pjo/pjoLog/pjoDev.log',
+            'formatter': 'verbose'
+        },
+        'dbLogFile': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/Users/woomi_mac/woomi_projects/camri_pjo/pjoLog/pjoDB.log',
+            'formatter': 'dbFormat'
+        },
+        'errLogFile': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': '/Users/woomi_mac/woomi_projects/camri_pjo/pjoLog/pjoError.log',
+            'formatter': 'errFormat'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'WARNING',
+        },
+        'django.request': {
+            'handlers': ['console'],
+            # 'handlers': ['console', 'errLogFile'],
+            'propagate': False,
+            'level': 'WARNING',
+        },
+        'dba': {
+            'handlers': ['console'],
+            # 'handlers': ['console', 'dbLogFile'],
+            'level': 'DEBUG',
+        },
+        'devLog': {
+            'handlers': ['console'],
+            # 'handlers': ['console', 'devLogFile'],
+            'level': 'DEBUG',
+        },
+        'errLog': {
+            'handlers': ['console'],
+            # 'handlers': ['console', 'errLogFile'],
+            'level': 'WARNING',
+        },
+    }
+}

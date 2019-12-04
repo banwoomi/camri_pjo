@@ -3,12 +3,6 @@ from django.utils import timezone
 from django import forms
 
 
-
-YN_TYPE = (
-     ('Y', 'YES')
-     , ('N', 'NO')
-)
-
 USE_TYPE = (
      ('Y', 'USE')
      , ('N', 'NOT USE')
@@ -18,6 +12,7 @@ AUTH_TYPE = (
      ('10', 'Common User')
      , ('99', 'Administrator')
 )
+
 
 """
 ==============================================
@@ -32,11 +27,21 @@ class CodeGroup(models.Model):
 
 
 class Code(models.Model):
-    group_id = models.ForeignKey(CodeGroup, on_delete=models.CASCADE)
+    group = models.ForeignKey(CodeGroup, on_delete=models.CASCADE)
     code_id = models.CharField(max_length=2)
     code_nm = models.CharField(max_length=30)
-    upper_id = models.CharField(max_length=3)
+    upper_id = models.CharField(max_length=3, blank=True, null=True)
     order_no = models.CharField(max_length=2)
+
+
+class ExceptionLog(models.Model):
+    exc_name = models.CharField(max_length=40)
+    exc_msg = models.CharField(max_length=100)
+    filename = models.CharField(max_length=100)
+    line_no = models.IntegerField(default=0)
+    line_string = models.CharField(max_length=100)
+    reg_id = models.CharField(max_length=20, default='anonymous')
+    reg_date = models.DateTimeField(default=timezone.now)
 
 
 """
@@ -50,7 +55,6 @@ class Researcher(models.Model):
     id = models.CharField(max_length=20, primary_key=True)
     first_nm = models.CharField(max_length=50)
     last_nm = models.CharField(max_length=50)
-    initial_nm = models.CharField(max_length=2)
     password = models.CharField(max_length=20)
     authority = models.CharField(max_length=2, default='10', choices=AUTH_TYPE)
     reg_date = models.DateTimeField()
@@ -63,6 +67,39 @@ class Researcher(models.Model):
 """
 
 
+class Raw(models.Model):
+    raw_folder_nm = models.CharField(max_length=50)
+    raw_save_date = models.CharField(max_length=8)
+    raw_subject_id = models.CharField(max_length=10, blank=True, null=True)
+    raw_session_id = models.CharField(max_length=10, blank=True, null=True)
+    raw_researcher = models.CharField(max_length=50, blank=True, null=True)
+    raw_specimen = models.CharField(max_length=10, blank=True, null=True)
+    raw_gender = models.CharField(max_length=10, blank=True, null=True)
+    raw_age = models.CharField(max_length=10, blank=True, null=True)
+    raw_weight = models.CharField(max_length=10, blank=True, null=True)
+    raw_delivery_date = models.CharField(max_length=8, blank=True, null=True)
+    convert_yn = models.CharField(max_length=1, default='N', choices=USE_TYPE)
+    backup_yn = models.CharField(max_length=1, default='N', choices=USE_TYPE)
+    reg_id = models.CharField(max_length=20, default='anonymous')
+    reg_date = models.DateTimeField(default=timezone.now)
+
+
+class RawScan(models.Model):
+    raw_id = models.ForeignKey(Raw, on_delete=models.CASCADE)
+    scan_num = models.CharField(max_length=2)
+    spat_resolution = models.CharField(max_length=20)
+    total_time = models.CharField(max_length=20)
+    te = models.CharField(max_length=5)
+    tr = models.CharField(max_length=5)
+    matrix = models.CharField(max_length=15)
+    fov = models.CharField(max_length=20)
+    thickness = models.CharField(max_length=5)
+    bandwidth = models.CharField(max_length=10)
+    choose_yn = models.CharField(max_length=1, default='N', choices=USE_TYPE)
+    reg_id = models.CharField(max_length=20, default='anonymous')
+    reg_date = models.DateTimeField(default=timezone.now)
+
+
 class Project(models.Model):
     project_id = models.CharField(max_length=4, primary_key=True)
     initial_nm = models.CharField(max_length=2)
@@ -70,26 +107,30 @@ class Project(models.Model):
     strain_type = models.CharField(max_length=1)
     classification = models.CharField(max_length=5)
     year = models.CharField(max_length=4)
-    researcher_nm = models.CharField(max_length=50)
+    pi_first_nm = models.CharField(max_length=30)
+    pi_last_nm = models.CharField(max_length=30)
     project_aim = models.CharField(max_length=50)
-    status_code = models.CharField(max_length=1)
-    reg_id = models.CharField(max_length=20, default='admin')
+    modifiable = models.CharField(max_length=1, default='Y', choices=USE_TYPE)
+    reg_id = models.CharField(max_length=20, default='anonymous')
     reg_date = models.DateTimeField(default=timezone.now)
 
 
 class Subject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     subject_nm = models.CharField(max_length=20)
-    single_ses_yn = models.CharField(max_length=1, default='Y', choices=USE_TYPE)
-    reg_id = models.CharField(max_length=20, default='admin')
+    multi_ses_yn = models.CharField(max_length=1, default='N', choices=USE_TYPE)
+    modifiable = models.CharField(max_length=1, default='Y', choices=USE_TYPE)
+    reg_id = models.CharField(max_length=20, default='anonymous')
     reg_date = models.DateTimeField(default=timezone.now)
 
 
 class Session(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    session_nm = models.CharField(max_length=20, default='normal')
-    reg_id = models.CharField(max_length=20, default='admin')
+    raw_id = models.ForeignKey(RawScan, on_delete=models.CASCADE)
+    session_nm = models.CharField(max_length=20, default='single')
+    status_code = models.CharField(max_length=1, default='0')
+    reg_id = models.CharField(max_length=20, default='anonymous')
     reg_date = models.DateTimeField(default=timezone.now)
 
 
@@ -97,10 +138,22 @@ class Scan(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    scan_num = models.CharField(max_length=2)
-    data_type = models.CharField(max_length=1)
-    reg_id = models.CharField(max_length=20, default='admin')
+    raw_scan_id = models.ForeignKey(RawScan, on_delete=models.CASCADE)
+    scan_num = models.CharField(max_length=2, default='1')
+    step_code = models.CharField(max_length=2, default='00')
+    err_yn = models.CharField(max_length=1, default='N', choices=USE_TYPE)
+    data_type = models.CharField(max_length=1, blank=True, null=True)
+    task = models.CharField(max_length=20, blank=True, null=True)
+    acq = models.CharField(max_length=20, blank=True, null=True)
+    ce = models.CharField(max_length=20, blank=True, null=True)
+    rec = models.CharField(max_length=2, blank=True, null=True)
+    run = models.CharField(max_length=2, blank=True, null=True)
+    mode = models.CharField(max_length=1, blank=True, null=True)
+    reg_id = models.CharField(max_length=20, default='anonymous')
     reg_date = models.DateTimeField(default=timezone.now)
+
+
+
 
 
 
