@@ -34,7 +34,8 @@ urlpatterns = [
     path('prj_sch', views.project_search, name='prj_sch'),
 
     # about Raw
-    path('raw_frm', views.raw_register, name='raw_frm'),
+    path('raw_frm', views.raw_form, name='raw_frm'),
     path('raw_reg', views.raw_register, name='raw_reg'),
+    path('raw_sch', views.raw_search, name='raw_sch'),
 
 ]

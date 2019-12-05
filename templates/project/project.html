@@ -130,7 +130,6 @@ function set_strain_selectbox() {
                     $("#selAnimalStrain").val(animal_type + strain);
                     $("#selAnimalStrain").prop("disabled", true);
                 }
-
             },
             error: function(request, status, error) {
                 alert(request.responseText + " status=[" + status + "] error=[" + error + "]");
@@ -252,7 +251,7 @@ function register() {
                 $("#div_json_msg").show();
                 $("#div_json_msg").delay(1000).fadeOut('slow');
                 if(data.ret_code == "I") {
-                    {#window.location.href="{% url 'pjo:index' %}"#}
+                    window.location.href="{% url 'pjo:prj_sch' %}"
                 }
             },
             error: function(request, status, error) {

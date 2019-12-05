@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import re
+import datetime
 
 from django.contrib import messages
 from django.core import serializers
@@ -517,6 +519,27 @@ def project_search(request):
 
 
 # ==============================================================================
+#  Raw Form
+# ==============================================================================
+def raw_form(request):
+
+    template_name = 'project/raw_list.html'
+    context = {
+        'title': 'Raw Files',
+    }
+
+    if 'signYn' in context:
+        template_name = 'member/sign_in.html'
+    else:
+
+        # values
+        reg_id = request.session['member_id']
+        logger.debug("reg_id [" + reg_id + "]")
+
+    return render(request, template_name, context)
+
+
+# ==============================================================================
 #  Register Raw
 # ==============================================================================
 def raw_register(request):
@@ -532,6 +555,11 @@ def raw_register(request):
         path_raw = Properties.path_raw()
         logger.debug("path_raw==[{}]".format(path_raw))
 
+        # values
+        dic_raw = dict()
+        dic_raw['regId'] = request.session.get("member_id")
+        dic_raw['regDate'] = CommonUtil.f_get_date_time()
+
         # Return
         dic_result = dict()
 
@@ -541,29 +569,34 @@ def raw_register(request):
                 raise Exception("Path does not exist. path=[" + path_raw + "]")
 
             list_raw = os.listdir(path_raw)
-            print(list_raw)
+            num_insert = 0
+            for raw_file in list_raw:
+                file_nm = re.split(".zip", raw_file)
+                if len(file_nm) > 1:
 
+                    # Check DB
+                    list_raw = ProjectDao.select_raw_list_by_name(file_nm[0])
+                    len_raw = len(list_raw)
+                    logger.debug("# {}=len:[{}]".format(file_nm[0], len_raw))
 
-            # Set Dictionary
-            # dic_project = dict()
-            # dic_project['firstName'] = request.POST['txtFirstName']
-            # dic_project['lastName'] = request.POST['txtLastName']
-            # dic_project['piInit'] = request.POST['txtPIInit']
-            # dic_project['animalType'] = request.POST['selAnimalType']
-            # dic_project['animalStrain'] = request.POST['selAnimalStrain']
-            # dic_project['classification'] = request.POST['txtClassification']
-            # dic_project['year'] = request.POST['selYear']
-            # dic_project['projectAim'] = request.POST['txtProjectAim']
-            # dic_project['regId'] = request.session.get("member_id")
-            # dic_project['regDate'] = CommonUtil.f_get_date_time()
-            #
-            # # Insert
-            # project_id = ProjectDao.insert_project(dic_project)
-            #
-            # dic_result['projectId'] = project_id
-            # dic_result['ret_code'] = "I"
-            # dic_result['ret_level'] = CommonUtil.f_get_message_tag(messages.SUCCESS)
-            # dic_result['ret_msg'] = "Project Registration success."
+                    if len_raw == 0:
+                        # Insert DB
+                        save_time = os.path.getmtime(os.path.join(path_raw, raw_file))
+                        save_time = datetime.datetime.fromtimestamp(save_time)
+                        save_time = save_time.strftime('%Y%m%d')
+                        dic_raw['rawFolderNm'] = file_nm[0]
+                        dic_raw['rawSaveDate'] = save_time
+                        ProjectDao.insert_raw(dic_raw)
+                        num_insert = num_insert + 1
+
+            if num_insert == 0:
+                dic_result['ret_code'] = "I"
+                dic_result['ret_level'] = CommonUtil.f_get_message_tag(messages.DEBUG)
+                dic_result['ret_msg'] = "There is no raw folder to save."
+            else:
+                dic_result['ret_code'] = "I"
+                dic_result['ret_level'] = CommonUtil.f_get_message_tag(messages.SUCCESS)
+                dic_result['ret_msg'] = "Raw Registration success. [Success:" + str(num_insert) + "]"
 
         except Exception as e:
             r = PjoException(exception=e, user_msg="Failed to register raw.", user_id=request.session.get("member_id"))
@@ -573,4 +606,85 @@ def raw_register(request):
             dic_result['ret_msg'] = r.message
 
         return JsonResponse(dic_result)
+
+
+# ==============================================================================
+#  Raw List
+# ==============================================================================
+def raw_search(request):
+
+    template_name = 'project/raw_list.html'
+    context = {
+        'title': 'Raw Files',
+    }
+
+    if 'signYn' in context:
+        template_name = 'member/sign_in.html'
+    else:
+
+        # ---------------------------------------------------------------------
+        #  get project list
+        # ---------------------------------------------------------------------
+        #  get parameters
+        if 'txtRawFileNm' in request.POST:
+            str_raw_file = request.POST['txtRawFileNm']
+            context['txtRawFileNm'] = str_raw_file
+
+        if 'txtStartScanDate' in request.POST:
+            str_start_date = request.POST['txtStartScanDate']
+            context['txtStartScanDate'] = str_start_date
+            if str_start_date != "":
+                arr_start_date = str_start_date.split("/")
+                context['txtStartDate'] = arr_start_date[2] + arr_start_date[0] + arr_start_date[1]
+
+        if 'txtEndScanDate' in request.POST:
+            str_end_date = request.POST['txtEndScanDate']
+            context['txtEndScanDate'] = str_end_date
+            if str_end_date != "":
+                arr_end_date = str_end_date.split("/")
+                context['txtEndDate'] = arr_end_date[2] + arr_end_date[0] + arr_end_date[1]
+
+        if 'selConvertYn' in request.POST:
+            str_convert = request.POST['selConvertYn']
+            context['selConvertYn'] = str_convert
+
+        if 'selBackupYn' in request.POST:
+            str_backup = request.POST['selBackupYn']
+            context['selBackupYn'] = str_backup
+
+        if 'txtPage' in request.POST:
+            str_page = request.POST['txtPage']
+            context['txtPage'] = str_page
+        else:
+            str_page = 1
+
+        try:
+
+            # Get Raw List
+            result_list = ProjectDao.select_raw_list(context)
+
+            # Paginator
+            paginator = Paginator(result_list, 20)
+
+            try:
+                result_list = paginator.page(str_page)
+            except PageNotAnInteger:
+                result_list = paginator.page(1)
+            except EmptyPage:
+                result_list = paginator.page(paginator.num_pages)
+
+            # context setting
+            context['resultList'] = result_list
+
+        except Exception as e:
+            r = PjoException(exception=e, user_msg="Failed to search raw list.",
+                             user_id=request.session.get("member_id"))
+            r.process()
+            messages.error(request, "Error occurred while searching the Raw list")
+
+        return render(request, template_name, context)
+
+
+
+
 

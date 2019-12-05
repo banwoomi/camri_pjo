@@ -1,0 +1,217 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+//---------------------------------------
+//  onload
+//---------------------------------------
+$(function() {
+    $("#txtStartScanDate").datepicker();
+    $("#txtEndScanDate").datepicker();
+});
+
+//---------------------------------------
+//  Validation Check
+//---------------------------------------
+function validationCheck() {
+
+    let bool_return = true;
+    let startDate = $("#txtStartScanDate").val();
+    let endDate = $("#txtEndScanDate").val();
+
+    if (startDate != "" || endDate != "") {
+
+        if (startDate != "" && endDate == "") {
+            alert("Fill the end date.");
+            $("#txtEndScanDate").focus();
+            bool_return = false;
+        } else if (startDate == "" && endDate != "") {
+            alert("Fill the start date.");
+            $("#txtStartScanDate").focus();
+            bool_return = false;
+        } else if (startDate != "" && endDate != "") {
+            if (startDate > endDate) {
+                alert("Check the scan date.");
+                $("#txtStartScanDate").focus();
+                bool_return = false;
+            }
+        }
+    }
+
+    return bool_return;
+}
+
+
+//---------------------------------------
+//  search
+//---------------------------------------
+function f_searchPagingList(pageNum) {
+    if(validationCheck()) {
+        $("#txtPage").val(pageNum);
+        document.mainForm.action = "{% url 'pjo:raw_sch' %}";
+        document.mainForm.submit();
+    }
+}
+
+
+//---------------------------------------
+//  Clear All
+//---------------------------------------
+function f_clearItem() {
+    $("#txtRawFileNm").val("");
+    $("#txtStartScanDate").val("");
+    $("#txtEndScanDate").val("");
+    $("#selConvertYn").val("");
+    $("#selBackupYn").val("");
+	f_searchPagingList(1);
+}
+
+
+//---------------------------------------
+//  Register Raw
+//---------------------------------------
+function f_reg_raw() {
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'pjo:raw_reg' %}",
+        data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+            {#txtProjectId : $("#txtProjectId").val(),#}
+        },
+        dataType: 'json',
+        success: function(data) {
+            if(data.ret_code != "F") {
+            } else {
+                f_searchPagingList(1);
+            }
+            $("#span_json_msg").text(data.ret_msg);
+            $("#div_json_msg").addClass(data.ret_level);
+            $("#div_json_msg").show();
+            $("#div_json_msg").delay(1000).fadeOut('slow');
+        },
+        error: function(request, status, error) {
+            $("#span_json_msg").text(error);
+            $("#div_json_msg").addClass("error");
+            $("#div_json_msg").show();
+        }
+    });
+}
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+<!-- hidden -->
+<input type="hidden" id="txtPage" name="txtPage">
+
+<div id="div_search">
+    <ul class="items col2">
+        <li>
+            <label for="txtRawFileNm">Raw File Name:</label>
+            <input type="text" id="txtRawFileNm" name="txtRawFileNm" class="vTextField" value="{{ txtRawFileNm }}"/>
+        </li>
+        <li>
+            <label for="txtStartScanDate">Scan Date:</label>
+            <input type="text" id="txtStartScanDate" name="txtStartScanDate" class="vDateField" value="{{ txtStartScanDate }}"/>
+            &nbsp;-&nbsp;<input type="text" id="txtEndScanDate" name="txtEndScanDate" class="vDateField" value="{{ txtEndScanDate }}"/>
+        </li>
+    </ul>
+
+    <ul class="items col2">
+        <li>
+            <label for="selConvertYn">Convert Y/N:</label>
+            <select class="selectfilter" id="selConvertYn" name="selConvertYn">
+                <option value="">--Choose--</option>
+                <option value="Y"{% if selConvertYn == "Y" %} selected {% endif %}>YES</option>
+                <option value="N"{% if selConvertYn == "N" %} selected {% endif %}>NO</option>
+            </select>
+        </li>
+        <li>
+            <label for="selBackupYn">Backup Y/N:</label>
+            <select class="selectfilter" id="selBackupYn" name="selBackupYn">
+                <option value="">--Choose--</option>
+                <option value="Y"{% if selBackupYn == "Y" %} selected {% endif %}>YES</option>
+                <option value="N"{% if selBackupYn == "N" %} selected {% endif %}>NO</option>
+            </select>&nbsp;&nbsp;&nbsp;
+        </li>
+    </ul>
+
+    <ul class="items col2">
+        <li></li>
+        <li>
+            <input type="button" value="Search" class="btn_simple" id="btnSearch" onclick="f_searchPagingList(1)"/>
+            <input type="button" value="Clear All" class="btn_simple" id="btnClearAll" onclick="f_clearItem()"/>
+            {%if request.session.authority == '99' %}
+                &nbsp;&nbsp;&nbsp;&nbsp;
+            <input type="button" value="Register Raw" class="btn_simple" id="btnRegRaw" onclick="f_reg_raw()"/>
+            {% endif %}
+        </li>
+    </ul>
+</div>
+</form>
+
+
+<!-- result -->
+<div class="div_result_title">
+    <h2>Raw File List</h2>
+</div>
+<div class="div_tb_result">
+    <div class="thead">
+        <div class="tr">
+            <div class="th tbWidth05">ID</div>
+            <div class="th tbWidth20">Raw Folder Name</div>
+            <div class="th tbWidth10">Save Date</div>
+            <div class="th tbWidth05">Backup Y/N</div>
+            <div class="th tbWidth05">Convert Y/N</div>
+        </div>
+    </div>
+
+    <div class="tbody">
+    {%	for row in resultList %}
+        <div class="tr">
+            <div class="td">{{ row.ID }}</div>
+            <div class="td">{{ row.RAW_FOLDER_NM }}</div>
+            <div class="td">{{ row.RAW_SAVE_DATE }}</div>
+            <div class="td">{{ row.BACKUP_YN }}</div>
+            <div class="td">{{ row.CONVERT_YN }}</div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+<!-- end of result -->
+
+<!-- paging -->
+{% if resultList.paginator.count > 0 %}
+<div class="paginator">
+    {% if resultList.has_previous %}
+        <a href="javascript:f_searchPagingList({{ resultList.previous_page_number }})">previous</a>
+    {% endif %}
+
+    <span class="current">
+        Page {{ resultList.number }} of {{ resultList.paginator.num_pages }}.
+    </span>
+
+    {% if resultList.has_next %}
+        <a href="javascript:f_searchPagingList( {{ resultList.next_page_number }} )">next</a>
+    {% endif %}
+</div>
+{% endif %}
+<!-- end of paging -->
+
+</div>
+{% endblock %}

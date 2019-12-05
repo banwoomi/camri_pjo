@@ -99,7 +99,7 @@ document.onkeydown = noEvent;
     <div id='pjo_menu'>
         <ul>
             <li><a href='{% url 'pjo:index' %}'>Home</a></li>
-            <li><a href='#'>Raw</a></li>
+            <li><a href='{% url 'pjo:raw_frm' %}'>Raw</a></li>
             <li><a href='{% url 'pjo:prj_sch' %}'>Project</a>
                 <ul>
                     <li><a href='{% url 'pjo:prj_sch' %}'>Project List</a></li>

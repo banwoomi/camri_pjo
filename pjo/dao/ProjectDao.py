@@ -3,6 +3,8 @@ from django.db import connection
 from django.db.models import Max
 from django.shortcuts import get_object_or_404
 from pjo.models import Project
+from pjo.models import Raw
+from pjo.models import RawScan
 from pjo.util.PjoDBUtil import DBUtil
 
 dbLogger = logging.getLogger("dba")
@@ -62,7 +64,7 @@ class ProjectDao(object):
                           pi_last_nm=dic_project['lastName'],
                           project_aim=dic_project['projectAim'],
                           reg_id=dic_project['regId'],
-                          reg_date = dic_project['regDate'])
+                          reg_date=dic_project['regDate'])
         dbLogger.debug(connection.queries[-1])
         project.save()
 
@@ -142,6 +144,81 @@ class ProjectDao(object):
         project.project_aim = dic_project['projectAim']
         project.save()
         dbLogger.info(connection.queries[-1])
+
+    # ==============================================================================
+    #  Insert Raw
+    # ==============================================================================
+    @staticmethod
+    def insert_raw(dic_raw):
+
+        raw = Raw(raw_folder_nm=dic_raw['rawFolderNm'],
+                  raw_save_date=dic_raw['rawSaveDate'],
+                  reg_id=dic_raw['regId'],
+                  reg_date=dic_raw['regDate'])
+        dbLogger.debug(connection.queries[-1])
+        raw.save()
+
+    # ==============================================================================
+    #  Select Raw List with inquiry condition
+    # ==============================================================================
+    @staticmethod
+    def select_raw_list(context):
+
+        # parameter list
+        param_list = list()
+
+        # make query
+        query_list = list()
+
+        query_list.append("SELECT A.ID                 \n")
+        query_list.append("     , A.RAW_FOLDER_NM      \n")
+        query_list.append("     , A.RAW_SAVE_DATE      \n")
+        query_list.append("     , A.RAW_SUBJECT_ID     \n")
+        query_list.append("     , A.RAW_RESEARCHER     \n")
+        query_list.append("     , A.RAW_SPECIMEN       \n")
+        query_list.append("     , A.RAW_GENDER         \n")
+        query_list.append("     , A.RAW_AGE            \n")
+        query_list.append("     , A.RAW_WEIGHT         \n")
+        query_list.append("     , A.RAW_DELIVERY_DATE  \n")
+        query_list.append("     , A.BACKUP_YN          \n")
+        query_list.append("     , A.CONVERT_YN         \n")
+        query_list.append("  FROM PJO_DB.PJO_RAW A     \n")
+        query_list.append(" WHERE 1=1                  \n")
+
+        if 'txtRawFileNm' in context and context['txtRawFileNm'] != "":
+            query_list.append("   AND A.RAW_FOLDER_NM LIKE %s \n")
+            param_list.append("%" + context['txtRawFileNm'] + "%")
+        if 'txtStartDate' in context and context['txtStartDate'] != "":
+            query_list.append("   AND A.RAW_SAVE_DATE BETWEEN %s AND %s \n")
+            param_list.append(context['txtStartDate'])
+            param_list.append(context['txtEndDate'])
+        if 'selConvertYn' in context and context['selConvertYn'] != "":
+            query_list.append("   AND A.CONVERT_YN = %s \n")
+            param_list.append(context['selConvertYn'])
+        if 'selBackupYn' in context and context['selBackupYn'] != "":
+            query_list.append("   AND A.BACKUP_YN = %s \n")
+            param_list.append(context['selBackupYn'])
+        query_list.append(" ORDER BY A.ID DESC \n")
+
+        # get data
+        with connection.cursor() as c:
+            try:
+                c.execute(''.join(query_list), param_list)
+                result_list = DBUtil().f_dictfetchall(c)
+                dbLogger.debug(''.join(query_list))
+                dbLogger.debug(param_list)
+            finally:
+                c.close()
+        return result_list
+
+    # ==============================================================================
+    #  Select Raw List
+    # ==============================================================================
+    @staticmethod
+    def select_raw_list_by_name(raw_folder_nm):
+        raw_list = Raw.objects.filter(raw_folder_nm=raw_folder_nm)
+        return raw_list
+
 
 
 
