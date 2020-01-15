@@ -1,0 +1,223 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+//---------------------------------------
+//  onload
+//---------------------------------------
+$(function() {
+
+    $("#txtStartScanDate").datepicker();
+    $("#txtEndScanDate").datepicker();
+
+    let end_date = new Date();
+    let start_date = new Date();
+    start_date.setDate(start_date.getDate()-30);
+
+    let dd = String(start_date.getDate()).padStart(2, '0');
+    let mm = String(start_date.getMonth() + 1).padStart(2, '0');
+    let yyyy = start_date.getFullYear();
+    start_date = mm + '/' + dd + '/' + yyyy;
+    $("#txtStartScanDate").val(start_date);
+
+    dd = String(end_date.getDate()).padStart(2, '0');
+    mm = String(end_date.getMonth() + 1).padStart(2, '0');
+    yyyy = end_date.getFullYear();
+    end_date = mm + '/' + dd + '/' + yyyy;
+    $("#txtEndScanDate").val(end_date);
+
+});
+
+
+//---------------------------------------
+//  Validation Check
+//---------------------------------------
+function validationCheck() {
+
+    let bool_return = true;
+    let startDate = $("#txtStartScanDate").val();
+    let endDate = $("#txtEndScanDate").val();
+
+    if (startDate != "" || endDate != "") {
+
+        if (startDate != "" && endDate == "") {
+            alert("Fill the end date.");
+            $("#txtEndScanDate").focus();
+            bool_return = false;
+        } else if (startDate == "" && endDate != "") {
+            alert("Fill the start date.");
+            $("#txtStartScanDate").focus();
+            bool_return = false;
+        } else if (startDate != "" && endDate != "") {
+            startDate = startDate.substring(6,10) + startDate.substring(0,2) + startDate.substring(3,5);
+            endDate = endDate.substring(6,10) + endDate.substring(0,2) + endDate.substring(3,5);
+
+            if (startDate > endDate) {
+                alert("Check the scan date.");
+                $("#txtStartScanDate").focus();
+                bool_return = false;
+            }
+        }
+    }
+
+    return bool_return;
+}
+
+
+//---------------------------------------
+//  Search Raw Files
+//---------------------------------------
+function f_searchRaw() {
+    if(validationCheck()) {
+        document.mainForm.action = "{% url 'pjo:map_raw' %}";
+        document.mainForm.submit();
+    }
+}
+
+
+//---------------------------------------
+//  Check All
+//---------------------------------------
+function f_checkAll() {
+    if ($("#totalCheck").is(":checked") == true) {
+        $("input[name='check_item']").prop("checked", true);
+    } else {
+        $("input[name='check_item']").prop("checked", false);
+    }
+}
+
+
+//---------------------------------------
+//  Mapping
+//---------------------------------------
+function f_mapping() {
+    let num = $("input[name='check_item']:checked").length;
+    let num_choose = 0;
+
+    if (num > 0) {
+        let arr_raw = "";
+
+        $("input[name='check_item']:checked").each(function () {
+            if (!$(this).prop("disabled")) {
+                arr_raw = arr_raw + ":" + $(this).val();
+                num_choose = num_choose + 1;
+            }
+        });
+        $("#hidChooseRaw").val(arr_raw);
+    } else {
+        num_choose = -1;
+    }
+
+    if (num_choose == -1) {
+        alert("Please choose Raw file.");
+    } else if (num_choose == 0) {
+        alert("Please choose unmapped Raw file.");
+    } else {
+        document.mainForm.action = "{% url 'pjo:map_reg' %}";
+        document.mainForm.submit();
+    }
+}
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+<!-- hidden -->
+<input type="hidden" id="hidChooseRaw" name="hidChooseRaw">
+
+<!-- navigation -->
+{% include "include/navigation.html" %}
+<!-- end of navigation -->
+
+<!-- Raw Search -->
+<div class="div_result_title">
+    <h2>Search Raw Files</h2>
+</div>
+<div id="div_search">
+    <ul class="items col3">
+        <li>
+            <label for="txtRawFileNm">Raw File Name:</label>
+            <input type="text" id="txtRawFileNm" name="txtRawFileNm" class="vTextField" value="{{ txtRawFileNm }}"/>
+        </li>
+        <li>
+            <label for="txtStartScanDate">Scan Date:</label>
+            <input type="text" id="txtStartScanDate" name="txtStartScanDate" class="vDateField" value="{{ txtStartScanDate }}"/>
+            &nbsp;-&nbsp;<input type="text" id="txtEndScanDate" name="txtEndScanDate" class="vDateField" value="{{ txtEndScanDate }}"/>
+        </li>
+        <li>
+            <input type="button" value="Search" class="btn_simple" id="btnSearch" onclick="f_searchRaw()"/>
+        </li>
+    </ul>
+</div>
+<!-- end of Raw Search -->
+
+<!-- result -->
+<div class="div_result_title">
+    <h2>Raw File List</h2>
+</div>
+<div class="div_tb_result">
+    <div class="thead">
+        <div class="tr">
+            <div class="th tbWidth03">
+                <input type="checkbox" id="totalCheck" name="totalCheck" onclick="f_checkAll()">
+            </div>
+            <div class="th tbWidth03">ID</div>
+            <div class="th tbWidth15">Raw Folder Name</div>
+            <div class="th tbWidth10">Subject</div>
+            <div class="th tbWidth10">Researcher</div>
+            <div class="th tbWidth03">Gender</div>
+            <div class="th tbWidth05">Age</div>
+            <div class="th tbWidth05">Weight</div>
+            <div class="th tbWidth05">Specimen</div>
+            <div class="th tbWidth05">Delivery<br>Date</div>
+            <div class="th tbWidth05">Scan Date</div>
+            <div class="th tbWidth03"># of SCAN</div>
+        </div>
+    </div>
+
+    <div class="tbody">
+    {%	for row in resultList %}
+        <div class="tr">
+            <div class="td"><input type="checkbox" name="check_item" value="{{ row.ID }}" {% if row.MAP_YN == 0 %}checked disabled{% endif %}></div>
+            <div class="td">{{ row.ID }}</div>
+            <div class="td"><a href="javascript:f_toStudy('{{ row.ID }}')">{{ row.RAW_FOLDER_NM }}</a></div>
+            <div class="td">{{ row.RAW_SUBJECT_ID }}</div>
+            <div class="td">{{ row.RAW_RESEARCHER }}</div>
+            <div class="td">{{ row.RAW_GENDER }}</div>
+            <div class="td">{{ row.RAW_AGE }}</div>
+            <div class="td">{{ row.RAW_WEIGHT }}</div>
+            <div class="td">{{ row.RAW_SPECIMEN }}</div>
+            <div class="td">{{ row.RAW_DELIVERY_DATE }}</div>
+            <div class="td">{{ row.RAW_SAVE_DATE }}</div>
+            <div class="td">{{ row.CNT }}</div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+<!-- end of result -->
+
+<!-- bottom button bar -->
+<div class="submit-row div_empty">
+    <input type="button" value="Mapping" class="btn_simple" id="btnMapping" onclick="f_mapping()"/>
+</div>
+<!-- end of bottom button bar -->
+
+</form>
+</div>
+{% endblock %}

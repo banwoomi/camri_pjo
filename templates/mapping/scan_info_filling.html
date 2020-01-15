@@ -1,0 +1,471 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+//---------------------------------------
+//  onload
+//---------------------------------------
+$(function() {
+    let hidRawId = $("#hidRawId").val();
+    $("#rdoSubject_" + hidRawId).prop("checked", true);
+});
+
+//---------------------------------------
+//  Go back to Project-Raw List
+//---------------------------------------
+function f_back() {
+    document.mainForm.action = "{% url 'pjo:map_raw' %}";
+    document.mainForm.submit();
+}
+
+//---------------------------------------
+//  Click Subject Row
+//---------------------------------------
+function f_chooseSubjectRow(raw_id, subject_id) {
+    $("#hidRawId").val(raw_id);
+    $("#hidSubjectId").val(subject_id);
+    document.mainForm.action = "{% url 'pjo:scan_lst' %}";
+    document.mainForm.submit();
+}
+
+
+//---------------------------------------
+//  Popup of Scan Detail Info
+//---------------------------------------
+function f_scanDetail(raw_id, scan_id, recon_id) {
+
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'pjo:scan_dtl' %}",
+        data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+            txtRawId : raw_id,
+            txtScanId : scan_id,
+            txtReconId : recon_id,
+        },
+        dataType: 'json',
+        success: function(result) {
+            const len_code = result.length;
+            if (len_code != 1) {
+                alert("Please reload this page.");
+            } else {
+                $("#txtScanNo").val(result[0]['SCAN_NUM']);
+                $("#txtMethod").val(result[0]['METHOD']);
+                $("#txtTE").val(result[0]['TE']);
+                $("#txtTR").val(result[0]['TR']);
+                $("#txtBW").val(result[0]['BAND_WIDTH']);
+                $("#txtFA").val(result[0]['FLIP_ANGLE']);
+
+                $("#txtReconNo").val(result[0]['RECON_NO']);
+                $("#txtFOV").val(result[0]['FOV']);
+                $("#txtMatrix").val(result[0]['MATRIX']);
+                $("#txtResolution").val(result[0]['RESOLUTION']);
+                $("#txtThickness").val(result[0]['THICKNESS']);
+                $("#txtBO").val(result[0]['BYTE_ORDER']);
+                $("#txtWT").val(result[0]['WORD_TYPE']);
+            }
+        },
+        error: function(request, status, error) {
+            $("#span_json_msg").text(error);
+            $("#div_json_msg").addClass("error");
+            $("#div_json_msg").show();
+        }
+    });
+}
+
+//---------------------------------------
+//  Save Subject Name
+//---------------------------------------
+function f_saveSubjectNm(subject_id) {
+    let subject_nm = $("#txtSubNm_" + subject_id).val();
+
+    if(!f_checkSpecial("txtSubNm_" + subject_id)) {
+        return false;
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'pjo:sub_mod' %}",
+            data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+                txtProjectId : $("#navProjectId").val(),
+                txtSubjectId : subject_id,
+                txtSubjectNm : subject_nm,
+            },
+            dataType: 'json',
+            success: function(data) {
+                $("#span_json_msg").text(data.ret_msg);
+                $("#div_json_msg").addClass(data.ret_level);
+                $("#div_json_msg").show();
+                $("#div_json_msg").delay(1000).fadeOut('slow');
+            },
+            error: function(request, status, error) {
+                $("#span_json_msg").text(error);
+                $("#div_json_msg").addClass("error");
+                $("#div_json_msg").show();
+            }
+        });
+    }
+}
+
+
+//---------------------------------------
+//  Validation Check
+//---------------------------------------
+function validationCheck(recon_id) {
+
+    let bool_return = true;
+    let sesNm = $("#sesNm_" + recon_id).val();
+    let task = $("#task_" + recon_id).val();
+
+    if (!$("#chkDel_" + recon_id).prop("checked")) {
+        if (sesNm == "") {
+            alert("Please fill the Session Name.");
+            $("#sesNm_" + recon_id).focus();
+            bool_return = false;
+        } else if (task == "") {
+            alert("Please fill the task.");
+            $("#task_" + recon_id).focus();
+            bool_return = false;
+        } else if(!f_checkSpecial("sesNm_" + recon_id)) {
+            bool_return = false;
+        } else if(!f_checkSpecial("task_" + recon_id)) {
+            bool_return = false;
+        } else if(!f_checkSpecial("acq_" + recon_id)) {
+            bool_return = false;
+        } else if(!f_checkSpecial("ce_" + recon_id)) {
+            bool_return = false;
+        } else if(!f_checkSpecial("rec_" + recon_id)) {
+            bool_return = false;
+        }
+    }
+
+    return bool_return;
+}
+
+
+
+//---------------------------------------
+//  Save Scan, Recon
+//---------------------------------------
+function f_saveScan(scan_id, recon_id) {
+
+    // Delete
+    if ($("#chkDel_" + recon_id).prop("checked")) {
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'pjo:scan_del' %}",
+            data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+                txtProjectId : $("#navProjectId").val(),
+                txtSesId : $("#sesId_" + recon_id).val(),
+                txtScanId : $("#scanId_" + recon_id).val(),
+            },
+            dataType: 'json',
+            success: function(data) {
+                $("#sesId_" + recon_id).val("");
+                $("#scanId_" + recon_id).val("");
+                $("#sesNm_" + recon_id).val("");
+                $("#task_" + recon_id).val("");
+                $("#acq_" + recon_id).val("");
+                $("#ce_" + recon_id).val("");
+                $("#rec_" + recon_id).val("");
+                $("#aim_" + recon_id).val("");
+                $("#chkDel_" + recon_id).prop("checked", false);
+                $("#chkDel_" + recon_id).prop("disabled", true);
+
+                $("#span_json_msg").text(data.ret_msg);
+                $("#div_json_msg").addClass(data.ret_level);
+                $("#div_json_msg").show();
+                $("#div_json_msg").delay(1000).fadeOut('slow');
+            },
+            error: function(request, status, error) {
+                $("#span_json_msg").text(error);
+                $("#div_json_msg").addClass("error");
+                $("#div_json_msg").show();
+            }
+        });
+    } else {
+        if (validationCheck(recon_id)) {
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'pjo:scan_reg' %}",
+                data: { "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    txtProjectId : $("#navProjectId").val(),
+                    txtSubjectId : $("#hidSubjectId").val(),
+                    txtRawScanId : scan_id,
+                    txtRawReconId : recon_id,
+                    txtSesId : $("#sesId_" + recon_id).val(),
+                    txtSesNm : $("#sesNm_" + recon_id).val(),
+                    txtScanId : $("#scanId_" + recon_id).val(),
+                    txtTask : $("#task_" + recon_id).val(),
+                    txtAcq : $("#acq_" + recon_id).val(),
+                    txtCe : $("#ce_" + recon_id).val(),
+                    txtRec : $("#rec_" + recon_id).val(),
+                    txtAim : $("#aim_" + recon_id).val(),
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $("#chkDel_" + recon_id).prop("disabled", false);
+                    $("#sesId_" + recon_id).val(data.session_id);
+                    $("#scanId_" + recon_id).val(data.scan_id);
+
+                    $("#span_json_msg").text(data.ret_msg);
+                    $("#div_json_msg").addClass(data.ret_level);
+                    $("#div_json_msg").show();
+                    $("#div_json_msg").delay(1000).fadeOut('slow');
+                },
+                error: function(request, status, error) {
+                    $("#span_json_msg").text(error);
+                    $("#div_json_msg").addClass("error");
+                    $("#div_json_msg").show();
+                }
+            });
+        }
+    }
+}
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+<!-- hidden -->
+<input type="hidden" id="hidSubjectId" name="hidSubjectId" value="{{ hidSubjectId }}">
+<input type="hidden" id="hidRawId" name="hidRawId" value="{{ hidRawId }}">
+
+<!-- navigation -->
+{% include "include/navigation.html" %}
+<!-- end of navigation -->
+
+<!-- Raw List -->
+<div class="div_result_title">
+    <h2>Mapped Study</h2>
+</div>
+<div class="div_tb_result">
+    <div class="thead">
+        <div class="tr">
+            <div class="th tbWidth05">Choose</div>
+            <div class="th tbWidth03">ID</div>
+            <div class="th tbWidth15">Raw Folder Name</div>
+            <div class="th tbWidth05">Gender</div>
+            <div class="th tbWidth05">Age</div>
+            <div class="th tbWidth05">Weight</div>
+            <div class="th tbWidth05">Specimen</div>
+            <div class="th tbWidth10">Delivery<br>Date</div>
+            <div class="th tbWidth05">Scan Date</div>
+            <div class="th tbWidth05"># of SCAN</div>
+            <div class="th tbWidth20 th_user_input">Subject Name</div>
+        </div>
+    </div>
+
+    <div class="tbody">
+    {%	for row in subjectList %}
+        <div class="tr">
+            <div class="td">
+                <input type="radio" id="rdoSubject_{{ row.ID }}" name="rdoSubject" onclick="f_chooseSubjectRow('{{ row.ID }}', '{{ row.SUBJECT_ID }}')">
+            </div>
+            <div class="td">{{ row.ID }}</div>
+            <div class="td">{{ row.RAW_FOLDER_NM }}</div>
+            <div class="td">{{ row.RAW_GENDER }}</div>
+            <div class="td">{{ row.RAW_AGE }}</div>
+            <div class="td">{{ row.RAW_WEIGHT }}</div>
+            <div class="td">{{ row.RAW_SPECIMEN }}</div>
+            <div class="td">{{ row.RAW_DELIVERY_DATE }}</div>
+            <div class="td">{{ row.RAW_SAVE_DATE }}</div>
+            <div class="td">{{ row.CNT }}</div>
+            <div class="td td_user_input">
+                <input type="text" id="txtSubNm_{{ row.SUBJECT_ID }}" name="txtSubNm" value="{{ row.SUBJECT_NM }}" maxlength="20">
+                <input type="button" value="Save" class="btn_table" id="btnSave" onclick="f_saveSubjectNm('{{ row.SUBJECT_ID }}')"/>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+<!-- end of Raw List -->
+
+<!-- result -->
+<div class="div_result_title">
+    <h2>Raw Scan List</h2>
+</div>
+<div class="div_tb_result">
+    <div class="thead">
+        <div class="tr">
+                <div class="th tbWidth05">Scan<br>Num</div>
+                <div class="th tbWidth05">Method</div>
+                <div class="th tbWidth05">TE</div>
+                <div class="th tbWidth05">TR</div>
+
+                <div class="th tbWidth07 th_style2">Recon<br>Y/N</div>
+                <div class="th tbWidth05 th_style2">Recon<br>No</div>
+                <div class="th tbWidth07 th_style2">Resolution</div>
+                <div class="th tbWidth05 th_style2">Thickness</div>
+                <div class="th tbWidth05 th_style2">Detail</div>
+
+                <div class="th tbWidth07 th_user_input">*Session<br>Name</div>
+                <div class="th tbWidth05 th_user_input">*task</div>
+                <div class="th tbWidth05 th_user_input">acq</div>
+                <div class="th tbWidth05 th_user_input">ce</div>
+                <div class="th tbWidth05 th_user_input">rec</div>
+                <div class="th tbWidth20 th_user_input">Aim</div>
+                <div class="th tbWidth05 th_user_input">Delete</div>
+                <div class="th tbWidth05 th_user_input">Save</div>
+        </div>
+    </div>
+
+    <div class="tbody">
+    {%	for row in scanList %}
+        <div class="tr">
+                <div class="td">{{ row.SCAN_NUM }}</div>
+                <div class="td">{{ row.METHOD }}</div>
+                <div class="td">{{ row.TE }}</div>
+                <div class="td">{{ row.TR }}</div>
+
+                <div class="td">{{ row.FID }}</div>
+                <div class="td">{{ row.RECON_NO }}</div>
+                <div class="td">{{ row.RESOLUTION }}</div>
+                <div class="td">{{ row.THICKNESS }}</div>
+                <div class="td">
+                    <a href="#openModal" class="btn_detail"
+                       onclick="f_scanDetail('{{ row.RAW_ID }}', '{{ row.RAW_SCAN_ID }}', '{{ row.RAW_RECON_ID }}')">Detail</a>
+                </div>
+
+                <div class="td td_user_input">
+                    <input type="hidden" id="sesId_{{ row.RAW_RECON_ID }}" name="sesId_{{ row.RAW_RECON_ID }}" value="{{ row.SESSION_ID }}">
+                    <input type="hidden" id="scanId_{{ row.RAW_RECON_ID }}" name="scanId_{{ row.RAW_RECON_ID }}" value="{{ row.SCAN_ID }}">
+                    <input type="text" id="sesNm_{{ row.RAW_RECON_ID }}" name="sesNm_{{ row.RAW_RECON_ID }}"
+                           value="{{ row.SESSION_NM }}" maxlength="20" size="10" class="input_width_auto">
+                </div>
+                <div class="td td_user_input">
+                    <input type="text" id="task_{{ row.RAW_RECON_ID }}" name="task_{{ row.RAW_RECON_ID }}"
+                           value="{{ row.TASK }}" maxlength="20" size="5" class="input_width_auto">
+                </div>
+                <div class="td td_user_input">
+                    <input type="text" id="acq_{{ row.RAW_RECON_ID }}" name="acq_{{ row.RAW_RECON_ID }}"
+                           value="{{ row.ACQ }}" maxlength="20" size="5" class="input_width_auto">
+                </div>
+                <div class="td td_user_input">
+                    <input type="text" id="ce_{{ row.RAW_RECON_ID }}" name="ce_{{ row.RAW_RECON_ID }}"
+                           value="{{ row.CE }}" maxlength="20" size="5" class="input_width_auto">
+                </div>
+                <div class="td td_user_input">
+                    <input type="text" id="rec_{{ row.RAW_RECON_ID }}" name="rec_{{ row.RAW_RECON_ID }}"
+                           value="{{ row.REC }}" maxlength="2" size="2" class="input_width_auto">
+                </div>
+                <div class="td td_user_input">
+                    <input type="text" id="aim_{{ row.RAW_RECON_ID }}" name="aim_{{ row.RAW_RECON_ID }}"
+                           value="{{ row.AIM }}" maxlength="50" size="25" class="input_width_auto">
+                </div>
+                <div class="td td_user_input">
+                    <input type="checkbox" id="chkDel_{{ row.RAW_RECON_ID }}" name="chkDel_{{ row.RAW_RECON_ID }}"
+                    {% if row.SESSION_ID == "" %} disabled {% endif %}>
+                </div>
+                <div class="td td_user_input">
+                    <input type="button" value="Save" class="btn_table" id="btnSaveScan"
+                           onclick="f_saveScan('{{ row.RAW_SCAN_ID }}', '{{ row.RAW_RECON_ID }}')"/>
+                </div>
+            </div>
+    {% endfor %}
+    </div>
+</div>
+<!-- end of result -->
+
+<!-- Modal Layer -->
+<div id="openModal" class="modalDialog">
+    <div>
+        <a href="#close" title="Close" class="close">X</a>
+        <h3>Raw Scan Info</h3>
+        <div class="modalDiv">
+            <ul class="modalItems modalCol2">
+                <li>
+                    <label for="txtScanNo">Scan Number:</label>
+                    <input type="text" id="txtScanNo" name="txtScanNo" readonly/>
+                </li>
+                <li>
+                    <label for="txtMethod">Method:</label>
+                    <input type="text" id="txtMethod" name="txtMethod" readonly/>
+                </li>
+            </ul>
+
+            <ul class="modalItems modalCol2">
+                <li>
+                    <label for="txtTE">TE(ms):</label>
+                    <input type="text" id="txtTE" name="txtTE" readonly/>
+                </li>
+                <li>
+                    <label for="txtTR">TR(ms):</label>
+                    <input type="text" id="txtTR" name="txtTR" readonly/>
+                </li>
+            </ul>
+
+            <ul class="modalItems modalCol2">
+                <li>
+                    <label for="txtBW">Band Width:</label>
+                    <input type="text" id="txtBW" name="txtBW" readonly/>
+                </li>
+                <li>
+                    <label for="txtFA">Flip Angle:</label>
+                    <input type="text" id="txtFA" name="txtFA" readonly/>
+                </li>
+            </ul>
+        </div>
+
+        <h3>Raw Recon Info</h3>
+        <div class="modalDiv">
+
+            <ul class="modalItems modalCol1">
+                <li>
+                    <label for="txtReconNo">Recon No.:</label>
+                    <input type="text" id="txtReconNo" name="txtReconNo" readonly/>
+                </li>
+            </ul>
+            <ul class="modalItems modalCol2">
+                <li>
+                    <label for="txtFOV">Fov:</label>
+                    <input type="text" id="txtFOV" name="txtFOV" readonly/>
+                </li>
+                <li>
+                    <label for="txtMatrix">Matrix:</label>
+                    <input type="text" id="txtMatrix" name="txtMatrix" readonly/>
+                </li>
+            </ul>
+            <ul class="modalItems modalCol2">
+                <li>
+                    <label for="txtResolution">Resolution:</label>
+                    <input type="text" id="txtResolution" name="txtResolution" readonly/>
+                </li>
+                <li>
+                    <label for="txtTe">Thickness:</label>
+                    <input type="text" id="txtThickness" name="txtThickness" readonly/>
+                </li>
+            </ul>
+            <ul class="modalItems modalCol2">
+                <li>
+                    <label for="txtBO">Byte Order:</label>
+                    <input type="text" id="txtBO" name="txtBO" readonly/>
+                </li>
+                <li>
+                    <label for="txtWT">Word Type:</label>
+                    <input type="text" id="txtWT" name="txtWT" readonly/>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+<!-- end of Modal Layer -->
+
+</form>
+</div>
+{% endblock %}

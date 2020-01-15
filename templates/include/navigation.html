@@ -1,0 +1,127 @@
+nav<input type="text" id="navStage" name="navStage" value="{{ navStage }}">
+step<input type="text" id="stepCode" name="stepCode" value="{{ stepCode }}">
+
+<!-- hidden -->
+<input type="hidden" id="navProjectId" name="navProjectId" value="{{ navProjectId }}">
+<input type="hidden" id="navSubjectId" name="navSubjectId" value="{{ navSubjectId }}">
+<input type="hidden" id="navDerivationId" name="navDerivationId" value="{{ navDerivationId }}">
+
+<!-- Project Info -->
+<div class="div_tb_keyval">
+    <div class="tbody">
+        <div class="tr">
+            <div class="th tbWidth15">ID</div>
+            <div class="td tbWidth15">{{ navProjectId }}</div>
+            <div class="th tbWidth15">Project Name</div>
+            <div class="td tbWidth15">{{ piInitial }}{{ animalType }}{{ strainType }}{{ classification }}</div>
+            <div class="th tbWidth15">Researcher</div>
+            <div class="td tbWidth15">{{ researcher }}</div>
+            <div class="td tbWidth15"></div>
+            <div class="td tbWidth15"></div>
+        </div>
+        <div class="tr">
+            <div class="th tbWidth15">Year</div>
+            <div class="td tbWidth15">{{ year }}</div>
+            <div class="th tbWidth15">Animal Type</div>
+            <div class="td tbWidth15">{{ animalTypeNm }}</div>
+            <div class="th tbWidth15">Strain Type</div>
+            <div class="td tbWidth15">{{ strainTypeNm }}</div>
+            <div class="th tbWidth15">Classification</div>
+            <div class="td tbWidth15">{{ classification }}</div>
+        </div>
+        <div class="tr">
+            <div class="th tbWidth15">Project Aim</div>
+            <div class="td tbWidth15">{{ projectAim }}</div>
+            <div class="td tbWidth15"></div>
+            <div class="td tbWidth15"></div>
+            <div class="td tbWidth15"></div>
+            <div class="td tbWidth15"></div>
+            <div class="td tbWidth15"></div>
+            <div class="td tbWidth15"></div>
+        </div>
+    </div>
+</div>
+<!-- end of Project Info -->
+
+<div id="divNavigation">
+	<div id="divButtonGroup">
+
+    <!--
+    step_code: active vs deactive
+    navStage: a link
+    -->
+	<!-- Study Mapping -->
+	{% if arrNav1 == 0 %}
+		<span class="navDeactive" id="spanProject">Study Mapping</span>
+	{% elif arrNav1 == 1 %}
+		<a onclick="goTo(0)"><span class="navPass" id="spanProject">Study Mapping</span></a>
+	{% elif arrNav1 == 2 %}
+		<span class="navActive" id="spanProject">Study Mapping</span>
+	{% else %}
+		<span class="navDeactive" id="spanProject">Study Mapping</span>
+	{% endif  %}
+
+	<!-- Scan Info Filling -->
+	{% if arrNav2 == 0 %}
+		<span class="navDeactive" id="spanSubject">Scan Info Filling</span>
+	{% elif arrNav2 == 1 %}
+        <a onclick="goTo(1)"><span class="navPass" id="spanSubject">Scan Info Filling</span></a>
+	{% elif arrNav2 == 2 %}
+        <span class="navActive" id="spanSubject">Scan Info Filling</span>
+	{% else %}
+		<span class="navDeactive" id="spanSubject">Scan Info Filling</span>
+	{% endif  %}
+
+	<!-- Derivation -->
+	{% if arrNav3 == 0 %}
+		<span class="navDeactive" id="spanDerivation">Derivation</span>
+	{% elif arrNav3 == 1 %}
+        <a onclick="goTo(2)"><span class="navPass" id="spanDerivation">Derivation</span></a>
+	{% elif arrNav3 == 2 %}
+        <span class="navActive" id="spanDerivation">Derivation</span>
+	{% else %}
+		<span class="navDeactive" id="spanDerivation">Derivation</span>
+	{% endif  %}
+
+	<!-- Preprocess -->
+	{% if arrNav4 == 0 %}
+		<span class="navDeactive" id="spanPreprocess">Preprocess</span>
+	{% elif arrNav4 == 1 %}
+        <a onclick="goTo(3)"><span class="navPass" id="spanPreprocess">Preprocess</span></a>
+	{% elif arrNav4 == 2 %}
+        <span class="navActive" id="spanPreprocess">Preprocess</span>
+	{% else %}
+		<span class="navDeactive" id="spanPreprocess">Preprocess</span>
+	{% endif  %}
+
+	</div>
+	<div class="navLine">&nbsp;</div>
+</div>
+
+
+<script type="text/javascript">
+
+function goTo(navNum) {
+
+	// go to Project
+	if(navNum == 0) {
+		document.mainForm.action = "{% url 'pjo:map_raw' %}";
+		document.mainForm.submit();
+	}
+	// go to Subject
+	else if(navNum == 1) {
+		document.mainForm.action = "{% url 'pjo:scan_lst' %}";
+		document.mainForm.submit();
+	} 
+	// go to Derivation
+	else if(navNum == 2) {
+		document.mainForm.action = "{% url 'pjo:prj_sch' %}";
+		document.mainForm.submit();
+	} 
+	// go to Preprocess
+	else if(navNum == 3) {
+	} 
+}
+
+</script>
+

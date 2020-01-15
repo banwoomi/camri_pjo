@@ -8,19 +8,6 @@
 
 
 /****************************************************************
- *  on Load
- ****************************************************************/
-(function($) {
-	$(document).ready(function() {
-		const strErrMsg = $("#errMsg").val();
-		if(strErrMsg) {
-			alert(strErrMsg);
-		}
-	});
-})($);
-
-
-/****************************************************************
  *  number only
  ****************************************************************/
 function f_numOnly(objId) {
@@ -79,7 +66,7 @@ function f_checkSpecial(objectId){
 	if(regExp.test(str)){
 		const retStr = str.replace(regExp, "")
 		chkObject.val(retStr);
-		alert("You can't use a special letters.");
+		alert("Only Alphanumeric is allowed.");
 		chkObject.focus();
 		return false;
 	}
