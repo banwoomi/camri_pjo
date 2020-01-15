@@ -15,9 +15,25 @@ class DBUtil(object):
     #  Make list to dictionary
     # ==============================================================================
     @staticmethod
-    def f_dictfetchall(cursor):
+    def f_dict_fetchall(cursor):
         columns = [col[0] for col in cursor.description]
         return [
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+
+    # ==============================================================================
+    #  Make list to dictionary
+    # ==============================================================================
+    @staticmethod
+    def f_dict_fetchone(cursor):
+
+        columns = [col[0] for col in cursor.description]
+        tuple_result = cursor.fetchone()
+
+        if tuple_result:
+            return dict(zip(columns, tuple_result))
+        else:
+            return None
+
+

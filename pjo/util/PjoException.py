@@ -31,7 +31,7 @@ class PjoException(Exception):
         # Custom Exception Message
         self.user_msg = kwargs.get('user_msg')
         if not self.user_msg:
-            self.user_msg = ""
+            self.user_msg = str(self.exception_msg)
 
         # User Session Info
         self.user_id = kwargs.get('user_id')
@@ -58,7 +58,7 @@ class PjoException(Exception):
 
         try:
             # INSERT
-            exception_log = ExceptionLog(exc_name=self.exception_class, exc_msg=self.exception_msg,
+            exception_log = ExceptionLog(exc_name=self.exception_class, exc_msg=str(self.exception_msg)[0:100],
                                          filename=self.filename, line_no=self.lineno,
                                          line_string=self.line, reg_id=self.user_id)
             exception_log.save()

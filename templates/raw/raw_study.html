@@ -1,0 +1,127 @@
+{% extends "include/base.html" %}
+{% load staticfiles %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block extrahead %}
+
+{{ block.super }}
+
+
+<script type="text/javascript">
+
+function f_back() {
+    document.mainForm.action = "{% url 'pjo:raw_sch' %}";
+    document.mainForm.submit();
+}
+
+</script>
+
+
+{% endblock %}
+
+
+{% block coltype %}colM{% endblock %}
+{% block content %}
+<div id="content-main">
+
+<form action="" method="post" id="mainForm" name="mainForm" novalidate>{% csrf_token %}
+
+<!-- hidden -->
+<input type="hidden" id="txtRawId" name="txtRawId" value="{{ txtRawId }}">
+<input type="hidden" id="txtRawFileNm" name="txtRawFileNm" value="{{ txtRawFileNm }}">
+<input type="hidden" id="txtStartScanDate" name="txtStartScanDate" value="{{ txtStartScanDate }}">
+<input type="hidden" id="txtEndScanDate" name="txtEndScanDate" value="{{ txtEndScanDate }}">
+<input type="hidden" id="txtPage" name="txtPage" value="{{ txtPage }}">
+
+<div class="div_tb_keyval">
+    <div class="tbody">
+        <div class="tr">
+            <div class="th tbWidth15">ID / Subject ID</div>
+            <div class="td tbWidth15">{{ raw_id }} / {{ raw_subject_id }}</div>
+            <div class="th tbWidth15">Raw Folder Name</div>
+            <div class="td tbWidth15">{{ raw_folder_nm }}</div>
+            <div class="th tbWidth15">Researcher</div>
+            <div class="td tbWidth15">{{ raw_researcher }}</div>
+        </div>
+        <div class="tr">
+            <div class="th tbWidth15">Gender</div>
+            <div class="td tbWidth15">{{ raw_gender }}</div>
+            <div class="th tbWidth15">Specimen</div>
+            <div class="td tbWidth15">{{ raw_specimen }}</div>
+            <div class="th tbWidth15">Age</div>
+            <div class="td tbWidth15">{{ raw_age }}</div>
+        </div>
+        <div class="tr">
+            <div class="th tbWidth15">Weight</div>
+            <div class="td tbWidth15">{{ raw_weight }}</div>
+            <div class="th tbWidth15">Delivery Date</div>
+            <div class="td tbWidth15">{{ raw_delivery_date }}</div>
+            <div class="th tbWidth15">Save Date</div>
+            <div class="td tbWidth15">{{ raw_save_date }}</div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- result -->
+<div class="div_result_title">
+    <h2>Scan List</h2>
+</div>
+<div class="div_result">
+    <div class="div_tb_result">
+        <div class="thead">
+            <div class="tr">
+                <div class="th tbWidth10">Scan Num</div>
+                <div class="th tbWidth10">Method</div>
+                <div class="th tbWidth10">TE</div>
+                <div class="th tbWidth10">TR</div>
+                <div class="th tbWidth10">Band width</div>
+                <div class="th tbWidth10">Flip angle</div>
+
+                <div class="th tbWidth10">Recon Y/N</div>
+                <div class="th tbWidth10">Recon No</div>
+                <div class="th tbWidth10">FOV</div>
+                <div class="th tbWidth10">Matrix</div>
+                <div class="th tbWidth10">Resolution</div>
+                <div class="th tbWidth10">Thickness</div>
+                <div class="th tbWidth10">Byte Order</div>
+                <div class="th tbWidth10">Word Type</div>
+            </div>
+        </div>
+
+        <div class="tbody">
+        {%	for row in scan_list %}
+            <div class="tr">
+                <div class="td">{{ row.SCAN_NUM }}</div>
+                <div class="td">{{ row.METHOD }}</div>
+                <div class="td">{{ row.TE }}</div>
+                <div class="td">{{ row.TR }}</div>
+                <div class="td">{{ row.BAND_WIDTH }}</div>
+                <div class="td">{{ row.FLIP_ANGLE }}</div>
+
+                <div class="td">{{ row.FID }}</div>
+                <div class="td">{{ row.RECON_NO }}</div>
+                <div class="td">{{ row.FOV }}</div>
+                <div class="td">{{ row.MATRIX }}</div>
+                <div class="td">{{ row.RESOLUTION }}</div>
+                <div class="td">{{ row.THICKNESS }}</div>
+                <div class="td">{{ row.BYTE_ORDER }}</div>
+                <div class="td">{{ row.WORD_TYPE }}</div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- end of result -->
+
+<!-- bottom button bar -->
+<div class="submit-row div_empty">
+    <input type="button" value="Back" class="btn_simple" id="btnBack" onclick="f_back()"/>
+</div>
+<!-- end of bottom button bar -->
+
+</form>
+</div>
+{% endblock %}

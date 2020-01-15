@@ -99,7 +99,7 @@ document.onkeydown = noEvent;
     <div id='pjo_menu'>
         <ul>
             <li><a href='{% url 'pjo:index' %}'>Home</a></li>
-            <li><a href='{% url 'pjo:raw_frm' %}'>Raw</a></li>
+            <li><a href='{% url 'pjo:raw_sch' %}'>Raw</a></li>
             <li><a href='{% url 'pjo:prj_sch' %}'>Project</a>
                 <ul>
                     <li><a href='{% url 'pjo:prj_sch' %}'>Project List</a></li>
@@ -137,7 +137,14 @@ document.onkeydown = noEvent;
         <span id="span_json_msg"></span>
     </div>
     <!-- End Json Message -->
-
+    <!-- Messages -->
+    {% for message in messages %}
+    <div class="msg_div {{ message.tags }}">
+      <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
+      {{ message }}
+    </div>
+    {% endfor %}
+    <!-- END Messages -->
 
     <!-- Content -->
     <div id="content" class="{% block coltype %}colM{% endblock %}">
@@ -155,15 +162,6 @@ document.onkeydown = noEvent;
         {% block sidebar %}{% endblock %}
         <br class="clear" />
 
-        <!-- Messages -->
-        <br class="clear" />
-        {% for message in messages %}
-        <div class="msg_div {{ message.tags }}">
-          <span class="msg_close_btn" onclick="this.parentElement.style.display='none';">&times;</span>
-          {{ message }}
-        </div>
-        {% endfor %}
-        <!-- END Messages -->
     </div>
     <!-- END Content -->
 

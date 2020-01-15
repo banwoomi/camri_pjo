@@ -33,6 +33,16 @@ function f_clearItem() {
 	f_searchPagingList(1);
 }
 
+
+//---------------------------------------
+//  Go To Raw List
+//---------------------------------------
+function f_goToRawList(project_id) {
+    $("#navProjectId").val(project_id);
+	document.mainForm.action = "{% url 'pjo:map_raw' %}";
+	document.mainForm.submit();
+}
+
 </script>
 
 
@@ -47,6 +57,7 @@ function f_clearItem() {
 
 <!-- hidden -->
 <input type="hidden" id="txtPage" name="txtPage">
+<input type="hidden" id="navProjectId" name="navProjectId">
 
 <div id="div_search">
     <ul class="items col2">
@@ -127,7 +138,7 @@ function f_clearItem() {
         <div class="tr">
             <div class="td">{{ row.PROJECT_ID }}</div>
             <div class="td">
-                <a href="javascript:f_goToSubject('{{ row.PROJECT_ID }}')">
+                <a href="javascript:f_goToRawList('{{ row.PROJECT_ID }}')">
                 {{ row.INITIAL_NM }}{{ row.ANIMAL_TYPE }}{{ row.STRAIN_TYPE }}{{ row.CLASSIFICATION }}
                 </a>
             </div>

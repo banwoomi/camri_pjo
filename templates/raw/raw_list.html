@@ -69,8 +69,6 @@ function f_clearItem() {
     $("#txtRawFileNm").val("");
     $("#txtStartScanDate").val("");
     $("#txtEndScanDate").val("");
-    $("#selConvertYn").val("");
-    $("#selBackupYn").val("");
 	f_searchPagingList(1);
 }
 
@@ -104,6 +102,16 @@ function f_reg_raw() {
     });
 }
 
+
+//---------------------------------------
+//  Move to Study page
+//---------------------------------------
+function f_toStudy(raw_id) {
+    $("#txtRawId").val(raw_id);
+    document.mainForm.action = "{% url 'pjo:raw_std' %}";
+    document.mainForm.submit();
+}
+
 </script>
 
 
@@ -118,9 +126,10 @@ function f_reg_raw() {
 
 <!-- hidden -->
 <input type="hidden" id="txtPage" name="txtPage">
+<input type="hidden" id="txtRawId" name="txtRawId">
 
 <div id="div_search">
-    <ul class="items col2">
+    <ul class="items col3">
         <li>
             <label for="txtRawFileNm">Raw File Name:</label>
             <input type="text" id="txtRawFileNm" name="txtRawFileNm" class="vTextField" value="{{ txtRawFileNm }}"/>
@@ -130,29 +139,6 @@ function f_reg_raw() {
             <input type="text" id="txtStartScanDate" name="txtStartScanDate" class="vDateField" value="{{ txtStartScanDate }}"/>
             &nbsp;-&nbsp;<input type="text" id="txtEndScanDate" name="txtEndScanDate" class="vDateField" value="{{ txtEndScanDate }}"/>
         </li>
-    </ul>
-
-    <ul class="items col2">
-        <li>
-            <label for="selConvertYn">Convert Y/N:</label>
-            <select class="selectfilter" id="selConvertYn" name="selConvertYn">
-                <option value="">--Choose--</option>
-                <option value="Y"{% if selConvertYn == "Y" %} selected {% endif %}>YES</option>
-                <option value="N"{% if selConvertYn == "N" %} selected {% endif %}>NO</option>
-            </select>
-        </li>
-        <li>
-            <label for="selBackupYn">Backup Y/N:</label>
-            <select class="selectfilter" id="selBackupYn" name="selBackupYn">
-                <option value="">--Choose--</option>
-                <option value="Y"{% if selBackupYn == "Y" %} selected {% endif %}>YES</option>
-                <option value="N"{% if selBackupYn == "N" %} selected {% endif %}>NO</option>
-            </select>&nbsp;&nbsp;&nbsp;
-        </li>
-    </ul>
-
-    <ul class="items col2">
-        <li></li>
         <li>
             <input type="button" value="Search" class="btn_simple" id="btnSearch" onclick="f_searchPagingList(1)"/>
             <input type="button" value="Clear All" class="btn_simple" id="btnClearAll" onclick="f_clearItem()"/>
@@ -170,27 +156,41 @@ function f_reg_raw() {
 <div class="div_result_title">
     <h2>Raw File List</h2>
 </div>
-<div class="div_tb_result">
-    <div class="thead">
-        <div class="tr">
-            <div class="th tbWidth05">ID</div>
-            <div class="th tbWidth20">Raw Folder Name</div>
-            <div class="th tbWidth10">Save Date</div>
-            <div class="th tbWidth05">Backup Y/N</div>
-            <div class="th tbWidth05">Convert Y/N</div>
+<div class="div_result">
+    <div class="div_tb_result">
+        <div class="thead">
+            <div class="tr">
+                <div class="th tbWidth03">ID</div>
+                <div class="th tbWidth15">Raw Folder Name</div>
+                <div class="th tbWidth10">Subject</div>
+                <div class="th tbWidth10">Researcher</div>
+                <div class="th tbWidth03">Gender</div>
+                <div class="th tbWidth05">Age</div>
+                <div class="th tbWidth05">Weight</div>
+                <div class="th tbWidth05">Specimen</div>
+                <div class="th tbWidth05">Delivery<br>Date</div>
+                <div class="th tbWidth05">Scan Date</div>
+                <div class="th tbWidth03"># of SCAN</div>
+            </div>
         </div>
-    </div>
 
-    <div class="tbody">
-    {%	for row in resultList %}
-        <div class="tr">
-            <div class="td">{{ row.ID }}</div>
-            <div class="td">{{ row.RAW_FOLDER_NM }}</div>
-            <div class="td">{{ row.RAW_SAVE_DATE }}</div>
-            <div class="td">{{ row.BACKUP_YN }}</div>
-            <div class="td">{{ row.CONVERT_YN }}</div>
+        <div class="tbody">
+        {%	for row in resultList %}
+            <div class="tr">
+                <div class="td">{{ row.ID }}</div>
+                <div class="td"><a href="javascript:f_toStudy('{{ row.ID }}')">{{ row.RAW_FOLDER_NM }}</a></div>
+                <div class="td">{{ row.RAW_SUBJECT_ID }}</div>
+                <div class="td">{{ row.RAW_RESEARCHER }}</div>
+                <div class="td">{{ row.RAW_GENDER }}</div>
+                <div class="td">{{ row.RAW_AGE }}</div>
+                <div class="td">{{ row.RAW_WEIGHT }}</div>
+                <div class="td">{{ row.RAW_SPECIMEN }}</div>
+                <div class="td">{{ row.RAW_DELIVERY_DATE }}</div>
+                <div class="td">{{ row.RAW_SAVE_DATE }}</div>
+                <div class="td">{{ row.CNT }}</div>
+            </div>
+        {% endfor %}
         </div>
-    {% endfor %}
     </div>
 </div>
 <!-- end of result -->
